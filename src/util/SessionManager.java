@@ -25,6 +25,10 @@ public class SessionManager {
         return currentUser != null && "kasir".equals(currentUser.getRole());
     }
     
+    public static boolean isSopir() {
+        return currentUser != null && "sopir".equals(currentUser.getRole());
+    }
+    
     public static void logout() {
         currentUser = null;
     }

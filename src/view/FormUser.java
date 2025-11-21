@@ -89,7 +89,7 @@ public class FormUser extends JFrame {
         gbc.gridx = 2;
         formPanel.add(new JLabel("Role:"), gbc);
         gbc.gridx = 3;
-        cmbRole = new JComboBox<>(new String[]{"kasir", "admin"});
+        cmbRole = new JComboBox<>(new String[]{"kasir", "admin", "sopir"});
         formPanel.add(cmbRole, gbc);
         
         // Row 3 - Alamat

@@ -141,8 +141,10 @@ public class FormLogin extends JFrame {
             
             if (user.getRole().equals("admin")) {
                 new DashboardAdmin().setVisible(true);
-            } else {
+            } else if (user.getRole().equals("kasir")) {
                 new DashboardKasir().setVisible(true);
+            } else if (user.getRole().equals("sopir")) {
+                new DashboardSopir().setVisible(true);
             }
         } else {
             JOptionPane.showMessageDialog(this, 

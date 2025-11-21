@@ -64,6 +64,7 @@ public class DashboardAdmin extends JFrame {
         btnManageUser = createMenuButton("Kelola User", new Color(155, 89, 182));
         btnManageBooking = createMenuButton("Kelola Booking", new Color(46, 204, 113));
         btnManagePelanggan = createMenuButton("Kelola Pelanggan", new Color(241, 196, 15));
+        JButton btnManageSopir = createMenuButton("Assignment Sopir", new Color(230, 126, 34));
         btnLaporan = createMenuButton("Laporan", new Color(230, 126, 34));
         btnLogout = createMenuButton("Logout", new Color(231, 76, 60));
         
@@ -71,11 +72,17 @@ public class DashboardAdmin extends JFrame {
         menuPanel.add(btnManageUser);
         menuPanel.add(btnManageBooking);
         menuPanel.add(btnManagePelanggan);
+        menuPanel.add(btnManageSopir);
         menuPanel.add(btnLaporan);
-        menuPanel.add(btnLogout);
+        
+        // Extra logout button
+        JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        logoutPanel.setBackground(Color.WHITE);
+        logoutPanel.add(btnLogout);
         
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(menuPanel, BorderLayout.CENTER);
+        mainPanel.add(logoutPanel, BorderLayout.SOUTH);
         add(mainPanel);
         
         // Event Listeners
@@ -83,6 +90,7 @@ public class DashboardAdmin extends JFrame {
         btnManageUser.addActionListener(e -> openManageUser());
         btnManageBooking.addActionListener(e -> openManageBooking());
         btnManagePelanggan.addActionListener(e -> openManagePelanggan());
+        btnManageSopir.addActionListener(e -> openManageSopir());
         btnLaporan.addActionListener(e -> openLaporan());
         btnLogout.addActionListener(e -> logout());
     }
@@ -125,6 +133,10 @@ public class DashboardAdmin extends JFrame {
     
     private void openManagePelanggan() {
         new FormPelanggan().setVisible(true);
+    }
+    
+    private void openManageSopir() {
+        new FormAssignmentSopir().setVisible(true);
     }
     
     private void openLaporan() {
