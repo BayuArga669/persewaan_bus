@@ -9,19 +9,19 @@ import java.awt.event.*;
 public class DashboardKasir extends JFrame {
     private JLabel lblWelcome, lblRole;
     private JButton btnBuatBooking, btnLihatBus, btnManagePelanggan;
-    private JButton btnRiwayatTransaksi, btnLogout;
+    private JButton btnPembayaran, btnRiwayatTransaksi, btnLogout;
     private BookingService bookingService;
     
     public DashboardKasir() {
         bookingService = new BookingService();
         initComponents();
-        autoUpdateBookingStatus(); // Auto update saat dashboard dibuka
+        autoUpdateBookingStatus();
         setLocationRelativeTo(null);
     }
     
     private void initComponents() {
         setTitle("Dashboard Kasir - Aplikasi Penyewaan Bus");
-        setSize(700, 500);
+        setSize(700, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
         
@@ -65,17 +65,18 @@ public class DashboardKasir extends JFrame {
         
         // Create Menu Buttons
         btnBuatBooking = createMenuButton("Buat Booking Baru", new Color(46, 204, 113));
+        btnPembayaran = createMenuButton("Kelola Pembayaran", new Color(52, 73, 94));
         btnLihatBus = createMenuButton("Lihat Daftar Bus", new Color(52, 152, 219));
         btnManagePelanggan = createMenuButton("Kelola Pelanggan", new Color(241, 196, 15));
         btnRiwayatTransaksi = createMenuButton("Riwayat Transaksi", new Color(155, 89, 182));
         btnLogout = createMenuButton("Logout", new Color(231, 76, 60));
         
         menuPanel.add(btnBuatBooking);
+        menuPanel.add(btnPembayaran);
         menuPanel.add(btnLihatBus);
         menuPanel.add(btnManagePelanggan);
         menuPanel.add(btnRiwayatTransaksi);
         menuPanel.add(btnLogout);
-        menuPanel.add(new JLabel()); // Empty cell
         
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(menuPanel, BorderLayout.CENTER);
@@ -83,6 +84,7 @@ public class DashboardKasir extends JFrame {
         
         // Event Listeners
         btnBuatBooking.addActionListener(e -> buatBooking());
+        btnPembayaran.addActionListener(e -> kelolaPembayaran());
         btnLihatBus.addActionListener(e -> lihatBus());
         btnManagePelanggan.addActionListener(e -> managePelanggan());
         btnRiwayatTransaksi.addActionListener(e -> riwayatTransaksi());
@@ -117,6 +119,10 @@ public class DashboardKasir extends JFrame {
         new FormBooking().setVisible(true);
     }
     
+    private void kelolaPembayaran() {
+        new FormPembayaran().setVisible(true);
+    }
+    
     private void lihatBus() {
         new FormBus().setVisible(true);
     }
@@ -132,12 +138,8 @@ public class DashboardKasir extends JFrame {
             JOptionPane.INFORMATION_MESSAGE);
     }
     
-    /**
-     * Auto update status booking saat dashboard dibuka
-     */
     private void autoUpdateBookingStatus() {
         bookingService.autoUpdateBookingStatus();
-        // Tidak tampilkan notifikasi untuk kasir (silent update)
     }
     
     private void logout() {
