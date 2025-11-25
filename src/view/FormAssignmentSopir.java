@@ -24,15 +24,9 @@ public class FormAssignmentSopir extends JFrame {
     private BookingDAO bookingDAO;
     private SopirDAO sopirDAO;
     private int selectedId = -1;
-    
-    // Formatter
     private NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-
-    // Field untuk simpan periode booking terpilih
-    private Date selectedBookingMulai;
-    private Date selectedBookingSelesai;
-
+    
     public FormAssignmentSopir() {
         assignmentDAO = new AssignmentSopirDAO();
         bookingDAO = new BookingDAO();
@@ -42,16 +36,16 @@ public class FormAssignmentSopir extends JFrame {
         loadData();
         setLocationRelativeTo(null);
     }
-
+    
     private void initComponents() {
         setTitle("Kelola Assignment Sopir");
         setSize(1200, 700);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
+        
         // Main Panel
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
+        
         // Header
         JPanel headerPanel = new JPanel();
         headerPanel.setBackground(new Color(230, 126, 34));
@@ -59,14 +53,14 @@ public class FormAssignmentSopir extends JFrame {
         lblTitle.setFont(new Font("Arial", Font.BOLD, 24));
         lblTitle.setForeground(Color.WHITE);
         headerPanel.add(lblTitle);
-
+        
         // Form Panel
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder("Form Assignment"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
-
+        
         // Row 0 - Booking
         gbc.gridx = 0; gbc.gridy = 0;
         formPanel.add(new JLabel("Booking:"), gbc);
@@ -74,7 +68,7 @@ public class FormAssignmentSopir extends JFrame {
         cmbBooking = new JComboBox<>();
         formPanel.add(cmbBooking, gbc);
         gbc.gridwidth = 1;
-
+        
         // Row 1 - Sopir
         gbc.gridx = 0; gbc.gridy = 1;
         formPanel.add(new JLabel("Sopir:"), gbc);
@@ -82,21 +76,21 @@ public class FormAssignmentSopir extends JFrame {
         cmbSopir = new JComboBox<>();
         formPanel.add(cmbSopir, gbc);
         gbc.gridwidth = 1;
-
+        
         // Row 2 - Fee Sopir
         gbc.gridx = 0; gbc.gridy = 2;
         formPanel.add(new JLabel("Fee Sopir:"), gbc);
         gbc.gridx = 1;
         txtFeeSopir = new JTextField(15);
         formPanel.add(txtFeeSopir, gbc);
-
+        
         // Row 2 - Status Bayar
         gbc.gridx = 2;
         formPanel.add(new JLabel("Status Bayar:"), gbc);
         gbc.gridx = 3;
         cmbStatusBayar = new JComboBox<>(new String[]{"belum_bayar", "dibayar"});
         formPanel.add(cmbStatusBayar, gbc);
-
+        
         // Row 3 - Tanggal Bayar
         gbc.gridx = 0; gbc.gridy = 3;
         formPanel.add(new JLabel("Tanggal Bayar:"), gbc);
@@ -104,7 +98,7 @@ public class FormAssignmentSopir extends JFrame {
         dateBayar = new JDateChooser();
         dateBayar.setDateFormatString("dd/MM/yyyy");
         formPanel.add(dateBayar, gbc);
-
+        
         // Row 4 - Keterangan
         gbc.gridx = 0; gbc.gridy = 4;
         formPanel.add(new JLabel("Keterangan:"), gbc);
@@ -113,24 +107,24 @@ public class FormAssignmentSopir extends JFrame {
         txtKeterangan.setLineWrap(true);
         JScrollPane scrollKeterangan = new JScrollPane(txtKeterangan);
         formPanel.add(scrollKeterangan, gbc);
-
+        
         // Row 5 - Buttons
         gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 4;
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
-
+        
         btnTambah = createButton("Assign Sopir", new Color(46, 204, 113));
         btnUpdate = createButton("Update", new Color(52, 152, 219));
         btnBayar = createButton("Bayar", new Color(241, 196, 15));
         btnBatal = createButton("Batal", new Color(149, 165, 166));
         btnRefresh = createButton("Refresh", new Color(155, 89, 182));
-
+        
         buttonPanel.add(btnTambah);
         buttonPanel.add(btnUpdate);
         buttonPanel.add(btnBayar);
         buttonPanel.add(btnBatal);
         buttonPanel.add(btnRefresh);
         formPanel.add(buttonPanel, gbc);
-
+        
         // Table
         String[] columns = {"ID", "Kode Booking", "Sopir", "Pelanggan", "Tujuan", "Tanggal", "Fee", "Status", "Tgl Bayar"};
         tableModel = new DefaultTableModel(columns, 0) {
@@ -142,16 +136,16 @@ public class FormAssignmentSopir extends JFrame {
         tableAssignment = new JTable(tableModel);
         tableAssignment.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tableAssignment.getColumnModel().getColumn(0).setPreferredWidth(40);
-
+        
         JScrollPane scrollTable = new JScrollPane(tableAssignment);
-
+        
         // Layout
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(formPanel, BorderLayout.NORTH);
         mainPanel.add(scrollTable, BorderLayout.CENTER);
-
+        
         add(mainPanel);
-
+        
         // Event Listeners
         btnTambah.addActionListener(e -> tambahAssignment());
         btnUpdate.addActionListener(e -> updateAssignment());
@@ -161,19 +155,17 @@ public class FormAssignmentSopir extends JFrame {
             loadComboBoxData();
             loadData();
         });
-
+        
         tableAssignment.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 selectRow();
             }
         });
-
-        cmbBooking.addActionListener(e -> loadSopirTersediaByBooking());
-
+        
         setButtonState(false);
     }
-
+    
     private JButton createButton(String text, Color color) {
         JButton button = new JButton(text);
         button.setBackground(color);
@@ -182,171 +174,98 @@ public class FormAssignmentSopir extends JFrame {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return button;
     }
-
+    
     private void loadComboBoxData() {
-        loadBookingData();
-    }
-
-    private void loadBookingData() {
+        // Load Booking (hanya yang sudah dikonfirmasi dan belum ada assignment)
         cmbBooking.removeAllItems();
         List<Booking> bookingList = bookingDAO.getAllBooking();
         for (Booking b : bookingList) {
-            if ("dikonfirmasi".equals(b.getStatusBooking())) {
+            if (b.getStatusBooking().equals("dikonfirmasi")) {
+                // Check if already has assignment
                 if (assignmentDAO.getAssignmentByBooking(b.getIdBooking()) == null) {
-                    String item = String.format("%d - %s (%s | %s - %s)",
-                            b.getIdBooking(),
-                            b.getKodeBooking(),
-                            b.getNamaPelanggan(),
-                            dateFormat.format(b.getTanggalMulai()),
-                            dateFormat.format(b.getTanggalSelesai()));
-                    cmbBooking.addItem(item);
+                    cmbBooking.addItem(b.getIdBooking() + " - " + b.getKodeBooking() + " (" + b.getNamaPelanggan() + ")");
                 }
             }
         }
-        loadSopirTersediaByBooking();
-    }
-
-    private void loadSopirTersediaByBooking() {
+        
+        // Load Sopir Aktif
         cmbSopir.removeAllItems();
-
-        String selected = (String) cmbBooking.getSelectedItem();
-        if (selected == null || selected.contains("--")) {
-            cmbSopir.setEnabled(false);
-            cmbSopir.setToolTipText("Pilih booking terlebih dahulu");
-            return;
-        }
-
-        int idBooking = getSelectedIdFromCombo(cmbBooking);
-        Booking booking = bookingDAO.getBookingById(idBooking);
-
-        if (booking == null) {
-            cmbSopir.addItem("-- Booking tidak ditemukan --");
-            cmbSopir.setEnabled(false);
-            return;
-        }
-
-        selectedBookingMulai = booking.getTanggalMulai();
-        selectedBookingSelesai = booking.getTanggalSelesai();
-
-        if (selectedBookingMulai == null || selectedBookingSelesai == null) {
-            cmbSopir.addItem("-- Tanggal booking tidak valid --");
-            cmbSopir.setEnabled(false);
-            return;
-        }
-
         List<Sopir> sopirList = sopirDAO.getSopirAktif();
-        boolean adaTersedia = false;
-
         for (Sopir s : sopirList) {
-            if (assignmentDAO.isSopirAvailable(s.getIdSopir(), selectedBookingMulai, selectedBookingSelesai)) {
-                cmbSopir.addItem(s.getIdSopir() + " - " + s.getNamaSopir() + " (" + s.getNoSim() + ")");
-                adaTersedia = true;
-            }
-        }
-
-        if (!adaTersedia) {
-            cmbSopir.addItem("-- Tidak ada sopir tersedia untuk periode ini --");
-            cmbSopir.setEnabled(false);
-            cmbSopir.setToolTipText("Semua sopir sedang bertugas pada " +
-                    dateFormat.format(selectedBookingMulai) + " - " +
-                    dateFormat.format(selectedBookingSelesai));
-        } else {
-            cmbSopir.setEnabled(true);
-            cmbSopir.setToolTipText(null);
+            cmbSopir.addItem(s.getIdSopir() + " - " + s.getNamaSopir() + " (" + s.getNoSim() + ")");
         }
     }
-
+    
     private void loadData() {
         tableModel.setRowCount(0);
         List<AssignmentSopir> assignments = assignmentDAO.getAllAssignments();
-
+        
         for (AssignmentSopir assignment : assignments) {
             Object[] row = {
-                    assignment.getIdAssignment(),
-                    assignment.getKodeBooking(),
-                    assignment.getNamaSopir(),
-                    assignment.getNamaPelanggan(),
-                    assignment.getTujuan(),
-                    dateFormat.format(assignment.getTanggalMulai()) + " - " +
-                            dateFormat.format(assignment.getTanggalSelesai()),
-                    currencyFormat.format(assignment.getFeeSopir()),
-                    "dibayar".equals(assignment.getStatusBayar()) ? "Dibayar" : "Belum Bayar",
-                    assignment.getTanggalBayar() != null ? dateFormat.format(assignment.getTanggalBayar()) : "-"
+                assignment.getIdAssignment(),
+                assignment.getKodeBooking(),
+                assignment.getNamaSopir(),
+                assignment.getNamaPelanggan(),
+                assignment.getTujuan(),
+                dateFormat.format(assignment.getTanggalMulai()) + " - " + dateFormat.format(assignment.getTanggalSelesai()),
+                currencyFormat.format(assignment.getFeeSopir()),
+                assignment.getStatusBayar().equals("dibayar") ? "Dibayar" : "Belum Bayar",
+                assignment.getTanggalBayar() != null ? dateFormat.format(assignment.getTanggalBayar()) : "-"
             };
             tableModel.addRow(row);
         }
     }
-
+    
     private void tambahAssignment() {
         if (!validateInput()) return;
-
-        // Ambil ID booking
+        
         int idBooking = getSelectedIdFromCombo(cmbBooking);
-        if (idBooking == -1) {
-            JOptionPane.showMessageDialog(this, "Booking tidak valid!", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Ambil data booking
-        Booking booking = bookingDAO.getBookingById(idBooking);
-        if (booking == null) {
+        int idSopir = getSelectedIdFromCombo(cmbSopir);
+        
+        // Get tanggal booking
+        java.sql.Date[] dates = assignmentDAO.getBookingDates(idBooking);
+        if (dates == null) {
             JOptionPane.showMessageDialog(this, "Data booking tidak ditemukan!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        // Validasi tanggal
-        if (booking.getTanggalMulai() == null || booking.getTanggalSelesai() == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Booking ini tidak memiliki tanggal mulai/selesai yang valid!",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+        
+        // Cek availability sopir
+        if (!assignmentDAO.isSopirAvailable(idSopir, dates[0], dates[1])) {
+            JOptionPane.showMessageDialog(this, 
+                "Sopir tidak tersedia!\n\nSopir ini sudah memiliki jadwal perjalanan yang bentrok.\n" +
+                "Tanggal: " + new SimpleDateFormat("dd/MM/yyyy").format(dates[0]) + 
+                " - " + new SimpleDateFormat("dd/MM/yyyy").format(dates[1]) +
+                "\n\nSilakan pilih sopir lain atau tunggu jadwal sopir ini selesai.", 
+                "Sopir Tidak Tersedia", 
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        // Ambil ID sopir
-        int idSopir = getSelectedIdFromCombo(cmbSopir);
-        if (idSopir == -1) {
-            JOptionPane.showMessageDialog(this, "Pilih sopir yang valid!", "Validasi", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // ✅ INI BAGIAN YANG ANDA TANYAKAN — SUDAH DIPERBAIKI
-        if (!assignmentDAO.isSopirAvailable(idSopir, booking.getTanggalMulai(), booking.getTanggalSelesai())) {
-            JOptionPane.showMessageDialog(this,
-                    "Sopir ini sedang bertugas pada periode booking ini!\n" +
-                            "Silakan pilih sopir lain.",
-                    "Sopir Tidak Tersedia",
-                    JOptionPane.WARNING_MESSAGE);
-            loadSopirTersediaByBooking();
-            return;
-        }
-
-        // Simpan assignment
+        
         AssignmentSopir assignment = new AssignmentSopir();
         assignment.setIdBooking(idBooking);
         assignment.setIdSopir(idSopir);
         assignment.setFeeSopir(Double.parseDouble(txtFeeSopir.getText().trim()));
         assignment.setStatusBayar(cmbStatusBayar.getSelectedItem().toString());
         assignment.setKeterangan(txtKeterangan.getText().trim());
-
+        
         if (assignmentDAO.tambahAssignment(assignment)) {
-            JOptionPane.showMessageDialog(this, "✅ Sopir berhasil di-assign!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Sopir berhasil di-assign!");
             loadComboBoxData();
             loadData();
             clearForm();
         } else {
-            JOptionPane.showMessageDialog(this, "❌ Gagal assign sopir!", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal assign sopir!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
+    
     private void updateAssignment() {
         if (selectedId == -1) {
             JOptionPane.showMessageDialog(this, "Pilih assignment yang akan diupdate!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
+        
         if (!validateInputUpdate()) return;
-
+        
         AssignmentSopir assignment = new AssignmentSopir();
         assignment.setIdAssignment(selectedId);
         assignment.setIdSopir(getSelectedIdFromCombo(cmbSopir));
@@ -354,59 +273,56 @@ public class FormAssignmentSopir extends JFrame {
         assignment.setStatusBayar(cmbStatusBayar.getSelectedItem().toString());
         assignment.setTanggalBayar(dateBayar.getDate());
         assignment.setKeterangan(txtKeterangan.getText().trim());
-
+        
         if (assignmentDAO.updateAssignment(assignment)) {
-            JOptionPane.showMessageDialog(this, "✅ Assignment berhasil diupdate!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Assignment berhasil diupdate!");
             loadData();
             clearForm();
         } else {
-            JOptionPane.showMessageDialog(this, "❌ Gagal update assignment!", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal update assignment!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
+    
     private void bayarSopir() {
         if (selectedId == -1) {
             JOptionPane.showMessageDialog(this, "Pilih assignment yang akan dibayar!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "Konfirmasi pembayaran fee sopir?",
-                "Konfirmasi Bayar",
-                JOptionPane.YES_NO_OPTION);
-
+        
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Konfirmasi pembayaran fee sopir?", 
+            "Konfirmasi Bayar", 
+            JOptionPane.YES_NO_OPTION);
+        
         if (confirm == JOptionPane.YES_OPTION) {
-            if (assignmentDAO.updateStatusBayar(
-                    selectedId,
-                    "dibayar",
-                    new java.sql.Date(System.currentTimeMillis())
-            )) {
-                JOptionPane.showMessageDialog(this, "✅ Pembayaran berhasil!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            if (assignmentDAO.updateStatusBayar(selectedId, "dibayar", new java.sql.Date(System.currentTimeMillis()))) {
+                JOptionPane.showMessageDialog(this, "Pembayaran berhasil!");
                 loadData();
                 clearForm();
             } else {
-                JOptionPane.showMessageDialog(this, "❌ Gagal melakukan pembayaran!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Gagal melakukan pembayaran!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
-
+    
     private void selectRow() {
         int row = tableAssignment.getSelectedRow();
         if (row != -1) {
             selectedId = Integer.parseInt(tableModel.getValueAt(row, 0).toString());
             AssignmentSopir assignment = assignmentDAO.getAssignmentById(selectedId);
-
+            
             if (assignment != null) {
                 txtFeeSopir.setText(String.valueOf(assignment.getFeeSopir()));
                 cmbStatusBayar.setSelectedItem(assignment.getStatusBayar());
                 dateBayar.setDate(assignment.getTanggalBayar());
                 txtKeterangan.setText(assignment.getKeterangan());
+                
                 cmbBooking.setEnabled(false);
                 setButtonState(true);
             }
         }
     }
-
+    
     private void clearForm() {
         txtFeeSopir.setText("");
         txtKeterangan.setText("");
@@ -418,51 +334,39 @@ public class FormAssignmentSopir extends JFrame {
         tableAssignment.clearSelection();
         cmbBooking.setEnabled(true);
         setButtonState(false);
-        loadSopirTersediaByBooking();
     }
-
+    
     private void setButtonState(boolean isUpdate) {
         btnTambah.setEnabled(!isUpdate);
         btnUpdate.setEnabled(isUpdate);
         btnBayar.setEnabled(isUpdate);
     }
-
+    
     private int getSelectedIdFromCombo(JComboBox<String> combo) {
         String selected = (String) combo.getSelectedItem();
-        if (selected != null && !selected.contains("--")) {
-            try {
-                return Integer.parseInt(selected.split(" - ")[0]);
-            } catch (Exception e) {
-                return -1;
-            }
+        if (selected != null) {
+            return Integer.parseInt(selected.split(" - ")[0]);
         }
         return -1;
     }
-
+    
     private boolean validateInput() {
-        if (cmbBooking.getSelectedItem() == null || cmbBooking.getSelectedItem().toString().contains("--")) {
-            JOptionPane.showMessageDialog(this, "Pilih booking yang valid!", "Validasi", JOptionPane.WARNING_MESSAGE);
+        if (cmbBooking.getSelectedItem() == null || cmbSopir.getSelectedItem() == null ||
+            txtFeeSopir.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Booking, Sopir, dan Fee wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
-        if (cmbSopir.getSelectedItem() == null || cmbSopir.getSelectedItem().toString().contains("--")) {
-            JOptionPane.showMessageDialog(this, "Pilih sopir yang tersedia!", "Validasi", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-        if (txtFeeSopir.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Fee wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-
+        
         try {
             Double.parseDouble(txtFeeSopir.getText().trim());
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Fee harus berupa angka!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
-
+        
         return true;
     }
-
+    
     private boolean validateInputUpdate() {
         if (txtFeeSopir.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Fee wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);

@@ -1,5 +1,6 @@
 package view;
 
+import service.BookingService;
 import util.SessionManager;
 import javax.swing.*;
 import java.awt.*;
@@ -9,9 +10,12 @@ public class DashboardKasir extends JFrame {
     private JLabel lblWelcome, lblRole;
     private JButton btnBuatBooking, btnLihatBus, btnManagePelanggan;
     private JButton btnRiwayatTransaksi, btnLogout;
+    private BookingService bookingService;
     
     public DashboardKasir() {
+        bookingService = new BookingService();
         initComponents();
+        autoUpdateBookingStatus(); // Auto update saat dashboard dibuka
         setLocationRelativeTo(null);
     }
     
@@ -126,6 +130,14 @@ public class DashboardKasir extends JFrame {
             "Menampilkan riwayat transaksi...", 
             "Info", 
             JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    /**
+     * Auto update status booking saat dashboard dibuka
+     */
+    private void autoUpdateBookingStatus() {
+        bookingService.autoUpdateBookingStatus();
+        // Tidak tampilkan notifikasi untuk kasir (silent update)
     }
     
     private void logout() {

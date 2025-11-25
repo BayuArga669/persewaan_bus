@@ -41,11 +41,38 @@ public class BookingDAO {
         }
     }
     
+    public boolean updateStatusBooking(int idBooking, String status) {
+    String sql = "UPDATE tbl_booking SET status_booking = ? WHERE id_booking = ?";
+    try (Connection conn = DatabaseConfig.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+        stmt.setString(1, status);
+        stmt.setInt(2, idBooking);
+        
+        boolean success = stmt.executeUpdate() > 0;
+        
+        if (success) {
+            // Dapatkan ID Bus dari booking
+            Booking booking = getBookingById(idBooking);
+            if (booking != null) {
+                // Update status bus berdasarkan status booking
+                updateBusStatusFromBooking(booking.getIdBus(), status);
+            }
+        }
+        
+        return success;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
+// Method updateBooking juga perlu diperbaiki
     public boolean updateBooking(Booking booking) {
         String sql = "UPDATE tbl_booking SET tanggal_mulai = ?, tanggal_selesai = ?, tujuan = ?, jumlah_penumpang = ?, lama_sewa = ?, total_harga = ?, status_booking = ?, catatan = ? WHERE id_booking = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+
             stmt.setDate(1, new java.sql.Date(booking.getTanggalMulai().getTime()));
             stmt.setDate(2, new java.sql.Date(booking.getTanggalSelesai().getTime()));
             stmt.setString(3, booking.getTujuan());
@@ -55,23 +82,15 @@ public class BookingDAO {
             stmt.setString(7, booking.getStatusBooking());
             stmt.setString(8, booking.getCatatan());
             stmt.setInt(9, booking.getIdBooking());
-            
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-    
-    public boolean updateStatusBooking(int idBooking, String status) {
-        String sql = "UPDATE tbl_booking SET status_booking = ? WHERE id_booking = ?";
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, status);
-            stmt.setInt(2, idBooking);
-            
-            return stmt.executeUpdate() > 0;
+
+            boolean success = stmt.executeUpdate() > 0;
+
+            if (success) {
+                // Update status bus berdasarkan status booking
+                updateBusStatusFromBooking(booking.getIdBus(), booking.getStatusBooking());
+            }
+
+            return success;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -166,6 +185,60 @@ public class BookingDAO {
             e.printStackTrace();
         }
         return bookingList;
+    }
+    
+    // Auto update status booking yang pending ke dibatalkan jika lewat tanggal selesai
+    public int autoUpdatePendingExpired() {
+        String sql = "UPDATE tbl_booking SET status_booking = 'dibatalkan' " +
+                     "WHERE status_booking = 'pending' " +
+                     "AND tanggal_selesai < CURDATE()";
+        
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            return stmt.executeUpdate(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    // Auto update status booking yang dikonfirmasi ke selesai jika lewat tanggal selesai
+    public int autoUpdateConfirmedToCompleted() {
+        String sql = "UPDATE tbl_booking SET status_booking = 'selesai' " +
+                     "WHERE status_booking = 'dikonfirmasi' " +
+                     "AND tanggal_selesai < CURDATE()";
+        
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            return stmt.executeUpdate(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    // Update status bus berdasarkan booking
+    public void updateBusStatusFromBooking(int idBus, String statusBooking) {
+        String statusBus = "tersedia";
+        
+        if (statusBooking.equals("dikonfirmasi")) {
+            statusBus = "disewa";
+        } else if (statusBooking.equals("selesai") || statusBooking.equals("dibatalkan")) {
+            statusBus = "tersedia";
+        }
+        
+        String sql = "UPDATE tbl_bus SET status = ? WHERE id_bus = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, statusBus);
+            stmt.setInt(2, idBus);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
     
     private Booking mapResultSetToBooking(ResultSet rs) throws SQLException {

@@ -2,6 +2,7 @@ package view;
 
 import dao.*;
 import model.*;
+import service.BookingService;
 import util.SessionManager;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -26,6 +27,7 @@ public class FormBooking extends JFrame {
     private BookingDAO bookingDAO;
     private PelangganDAO pelangganDAO;
     private BusDAO busDAO;
+    private BookingService bookingService;
     private int selectedId = -1;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
@@ -34,6 +36,7 @@ public class FormBooking extends JFrame {
         bookingDAO = new BookingDAO();
         pelangganDAO = new PelangganDAO();
         busDAO = new BusDAO();
+        bookingService = new BookingService();
         initComponents();
         loadComboBoxData();
         loadData();
@@ -310,32 +313,46 @@ public class FormBooking extends JFrame {
     }
     
     private void updateBooking() {
-        if (selectedId == -1) {
-            JOptionPane.showMessageDialog(this, "Pilih booking yang akan diupdate!", "Peringatan", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        if (!validateInputUpdate()) return;
-        
-        Booking booking = new Booking();
-        booking.setIdBooking(selectedId);
-        booking.setTanggalMulai(dateStart.getDate());
-        booking.setTanggalSelesai(dateEnd.getDate());
-        booking.setTujuan(txtTujuan.getText().trim());
-        booking.setJumlahPenumpang(Integer.parseInt(txtJumlahPenumpang.getText().trim()));
-        booking.setLamaSewa(Integer.parseInt(txtLamaSewa.getText().trim()));
-        booking.setTotalHarga(Double.parseDouble(txtTotalHarga.getText().replace("Rp", "").replace(".", "").replace(",", ".").trim()));
-        booking.setStatusBooking(cmbStatus.getSelectedItem().toString());
-        booking.setCatatan(txtCatatan.getText().trim());
-        
-        if (bookingDAO.updateBooking(booking)) {
-            JOptionPane.showMessageDialog(this, "Booking berhasil diupdate!");
-            loadData();
-            clearForm();
-        } else {
-            JOptionPane.showMessageDialog(this, "Gagal mengupdate booking!", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+    if (selectedId == -1) {
+        JOptionPane.showMessageDialog(this, "Pilih booking yang akan diupdate!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+        return;
     }
+    
+    if (!validateInputUpdate()) return;
+    
+    // Ambil data booking lama untuk mendapatkan ID Bus
+    Booking oldBooking = bookingDAO.getBookingById(selectedId);
+    
+    Booking booking = new Booking();
+    booking.setIdBooking(selectedId);
+    booking.setIdBus(oldBooking.getIdBus()); // Penting untuk update status bus
+    booking.setTanggalMulai(dateStart.getDate());
+    booking.setTanggalSelesai(dateEnd.getDate());
+    booking.setTujuan(txtTujuan.getText().trim());
+    booking.setJumlahPenumpang(Integer.parseInt(txtJumlahPenumpang.getText().trim()));
+    booking.setLamaSewa(Integer.parseInt(txtLamaSewa.getText().trim()));
+    booking.setTotalHarga(Double.parseDouble(txtTotalHarga.getText().replace("Rp", "").replace(".", "").replace(",", ".").trim()));
+    booking.setStatusBooking(cmbStatus.getSelectedItem().toString());
+    booking.setCatatan(txtCatatan.getText().trim());
+    
+    if (bookingDAO.updateBooking(booking)) {
+        String message = "Booking berhasil diupdate!";
+        
+        // Informasi tambahan jika status berubah ke selesai/dibatalkan
+        if (booking.getStatusBooking().equals("selesai") || booking.getStatusBooking().equals("dibatalkan")) {
+            message += "\nStatus bus telah diubah menjadi 'tersedia'";
+        } else if (booking.getStatusBooking().equals("dikonfirmasi")) {
+            message += "\nStatus bus telah diubah menjadi 'disewa'";
+        }
+        
+        JOptionPane.showMessageDialog(this, message, "Sukses", JOptionPane.INFORMATION_MESSAGE);
+        loadData();
+        loadComboBoxData(); // Refresh combo bus
+        clearForm();
+    } else {
+        JOptionPane.showMessageDialog(this, "Gagal mengupdate booking!", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
     
     private void hapusBooking() {
         if (selectedId == -1) {
