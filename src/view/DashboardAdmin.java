@@ -9,7 +9,7 @@ import java.awt.event.*;
 public class DashboardAdmin extends JFrame {
     private JLabel lblWelcome, lblRole;
     private JButton btnManageBus, btnManageUser, btnManageBooking;
-    private JButton btnManagePelanggan, btnLaporan, btnLogout;
+    private JButton btnManagePelanggan, btnManageSopir, btnManagePembayaran, btnLaporan, btnLogout;
     private BookingService bookingService;
     
     public DashboardAdmin() {
@@ -21,7 +21,7 @@ public class DashboardAdmin extends JFrame {
     
     private void initComponents() {
         setTitle("Dashboard Admin - Aplikasi Penyewaan Bus");
-        setSize(800, 600);
+        setSize(850, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
         
@@ -33,7 +33,7 @@ public class DashboardAdmin extends JFrame {
         // Header Panel
         JPanel headerPanel = new JPanel();
         headerPanel.setBackground(new Color(41, 128, 185));
-        headerPanel.setPreferredSize(new Dimension(800, 100));
+        headerPanel.setPreferredSize(new Dimension(850, 100));
         headerPanel.setLayout(new BorderLayout());
         
         JPanel userInfoPanel = new JPanel();
@@ -59,7 +59,7 @@ public class DashboardAdmin extends JFrame {
         
         // Menu Panel
         JPanel menuPanel = new JPanel();
-        menuPanel.setLayout(new GridLayout(3, 2, 20, 20));
+        menuPanel.setLayout(new GridLayout(3, 3, 20, 20));
         menuPanel.setBackground(Color.WHITE);
         menuPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
         
@@ -68,8 +68,9 @@ public class DashboardAdmin extends JFrame {
         btnManageUser = createMenuButton("Kelola User", new Color(155, 89, 182));
         btnManageBooking = createMenuButton("Kelola Booking", new Color(46, 204, 113));
         btnManagePelanggan = createMenuButton("Kelola Pelanggan", new Color(241, 196, 15));
-        JButton btnManageSopir = createMenuButton("Assignment Sopir", new Color(230, 126, 34));
-        btnLaporan = createMenuButton("Laporan", new Color(230, 126, 34));
+        btnManageSopir = createMenuButton("Assignment Sopir", new Color(230, 126, 34));
+        btnManagePembayaran = createMenuButton("Kelola Pembayaran", new Color(52, 73, 94));
+        btnLaporan = createMenuButton("Laporan Keuangan", new Color(26, 188, 156));
         btnLogout = createMenuButton("Logout", new Color(231, 76, 60));
         
         menuPanel.add(btnManageBus);
@@ -77,16 +78,13 @@ public class DashboardAdmin extends JFrame {
         menuPanel.add(btnManageBooking);
         menuPanel.add(btnManagePelanggan);
         menuPanel.add(btnManageSopir);
+        menuPanel.add(btnManagePembayaran);
         menuPanel.add(btnLaporan);
-        
-        // Extra logout button
-        JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        logoutPanel.setBackground(Color.WHITE);
-        logoutPanel.add(btnLogout);
+        menuPanel.add(btnLogout);
+        menuPanel.add(new JLabel()); // Empty cell
         
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(menuPanel, BorderLayout.CENTER);
-        mainPanel.add(logoutPanel, BorderLayout.SOUTH);
         add(mainPanel);
         
         // Event Listeners
@@ -95,13 +93,14 @@ public class DashboardAdmin extends JFrame {
         btnManageBooking.addActionListener(e -> openManageBooking());
         btnManagePelanggan.addActionListener(e -> openManagePelanggan());
         btnManageSopir.addActionListener(e -> openManageSopir());
+        btnManagePembayaran.addActionListener(e -> openManagePembayaran());
         btnLaporan.addActionListener(e -> openLaporan());
         btnLogout.addActionListener(e -> logout());
     }
     
     private JButton createMenuButton(String text, Color color) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 18));
+        button.setFont(new Font("Arial", Font.BOLD, 16));
         button.setBackground(color);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
@@ -143,11 +142,17 @@ public class DashboardAdmin extends JFrame {
         new FormAssignmentSopir().setVisible(true);
     }
     
+    private void openManagePembayaran() {
+        new FormPembayaran().setVisible(true);
+    }
+    
     private void openLaporan() {
-        JOptionPane.showMessageDialog(this, 
-            "Fitur Laporan dalam pengembangan", 
-            "Info", 
-            JOptionPane.INFORMATION_MESSAGE);
+        new FormLaporan().setVisible(true);
+    }
+    
+    private void autoUpdateBookingStatus() {
+        bookingService.autoUpdateBookingStatus();
+        // Silent update - tidak tampilkan notifikasi
     }
     
     private void logout() {
@@ -161,9 +166,5 @@ public class DashboardAdmin extends JFrame {
             this.dispose();
             new FormLogin().setVisible(true);
         }
-    }
-    private void autoUpdateBookingStatus() {
-        bookingService.autoUpdateBookingStatus();
-        // Tidak tampilkan notifikasi untuk kasir (silent update)
     }
 }
