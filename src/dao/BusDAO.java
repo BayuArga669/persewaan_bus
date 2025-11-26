@@ -208,4 +208,34 @@ public class BusDAO {
         }
         return busList;
     }
+    
+    public Bus getBusByNoPolisi(String noPolisi) {
+    String sql = "SELECT * FROM tbl_bus WHERE no_polisi = ?";
+    
+    try (Connection conn = DatabaseConfig.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+        stmt.setString(1, noPolisi);
+
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                Bus bus = new Bus();
+                bus.setIdBus(rs.getInt("id_bus"));
+                bus.setNoPolisi(rs.getString("no_polisi"));
+                bus.setTipeBus(rs.getString("tipe_bus"));
+                bus.setMerk(rs.getString("merk"));
+                bus.setKapasitas(rs.getInt("kapasitas"));
+                bus.setFasilitas(rs.getString("fasilitas"));
+                bus.setHargaPerHari(rs.getDouble("harga_per_hari"));
+                bus.setFoto(rs.getString("foto"));
+                bus.setStatus(rs.getString("status"));
+                return bus;
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
 }

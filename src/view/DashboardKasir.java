@@ -5,130 +5,324 @@ import util.SessionManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.RoundRectangle2D;
 
 public class DashboardKasir extends JFrame {
     private JLabel lblWelcome, lblRole;
-    private JButton btnBuatBooking, btnLihatBus, btnManagePelanggan;
-    private JButton btnPembayaran, btnRiwayatTransaksi, btnLogout;
+    private Font titleFont = new Font("Segoe UI", Font.BOLD, 28);
+    private Font subtitleFont = new Font("Segoe UI", Font.PLAIN, 18);
+
+    // Warna
+    private final Color PRIMARY = new Color(52, 152, 219);
+    private final Color PRIMARY_DARK = new Color(40, 130, 190);
+    private final Color SUCCESS = new Color(46, 204, 113);
+    private final Color INFO = new Color(52, 152, 219);
+    private final Color WARNING = new Color(241, 196, 15);
+    private final Color PURPLE = new Color(155, 89, 182);
+    private final Color DARK_BLUE = new Color(52, 73, 94);
+    private final Color DANGER = new Color(231, 76, 60);
+    private final Color LIGHT = new Color(248, 249, 250);
+    private final Color DARK = new Color(52, 58, 64);
+    private final Color GRAY = new Color(206, 212, 218);
+
+    // Service
     private BookingService bookingService;
-    
+
     public DashboardKasir() {
         bookingService = new BookingService();
         initComponents();
         autoUpdateBookingStatus();
         setLocationRelativeTo(null);
     }
-    
+
     private void initComponents() {
         setTitle("Dashboard Kasir - Aplikasi Penyewaan Bus");
-        setSize(700, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
-        
-        // Main Panel
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout());
-        mainPanel.setBackground(Color.WHITE);
-        
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setLayout(new BorderLayout());
+
         // Header Panel
-        JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(52, 152, 219));
-        headerPanel.setPreferredSize(new Dimension(700, 100));
-        headerPanel.setLayout(new BorderLayout());
+        JPanel headerPanel = createHeaderPanel();
+        add(headerPanel, BorderLayout.NORTH);
+
+        // Main Content
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(LIGHT);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(40, 30, 40, 30));
         
-        JPanel userInfoPanel = new JPanel();
-        userInfoPanel.setBackground(new Color(52, 152, 219));
-        userInfoPanel.setLayout(new BoxLayout(userInfoPanel, BoxLayout.Y_AXIS));
+        JLabel titleLabel = new JLabel("DASHBOARD KASIR");
+        titleLabel.setFont(titleFont);
+        titleLabel.setForeground(DARK);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        JLabel subtitleLabel = new JLabel("Kelola pemesanan & pembayaran bus pelanggan");
+        subtitleLabel.setFont(subtitleFont);
+        subtitleLabel.setForeground(GRAY);
+        subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        JPanel titlePanel = new JPanel(new GridLayout(2, 1, 0, 10));
+        titlePanel.setOpaque(false);
+        titlePanel.add(titleLabel);
+        titlePanel.add(subtitleLabel);
+        
+        // Menu Panel
+        JPanel cardPanel = createCardPanel();
+        
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.setBackground(LIGHT);
+        centerPanel.add(Box.createVerticalGlue());
+        centerPanel.add(titlePanel);
+        centerPanel.add(Box.createRigidArea(new Dimension(0, 50)));
+        centerPanel.add(cardPanel);
+        centerPanel.add(Box.createVerticalGlue());
+        
+        JScrollPane scrollPane = new JScrollPane(centerPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(LIGHT);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.CENTER);
+
+        // Footer
+        JLabel footerLabel = new JLabel("© 2025 Aplikasi Penyewaan Bus Pariwisata | All Rights Reserved");
+        footerLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        footerLabel.setForeground(GRAY);
+        footerLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        footerLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        add(footerLabel, BorderLayout.SOUTH);
+    }
+
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, PRIMARY,
+                    getWidth(), getHeight(), PRIMARY_DARK
+                );
+                g2.setPaint(gradient);
+                g2.fill(new Rectangle(0, 0, getWidth(), getHeight()));
+            }
+        };
+        headerPanel.setPreferredSize(new Dimension(0, 120));
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        titlePanel.setOpaque(false);
+        
+        JLabel logoLabel = new JLabel("🎫");
+        logoLabel.setFont(new Font("Segoe UI", Font.BOLD, 40));
+        
+        JPanel textPanel = new JPanel(new GridLayout(2, 1, 0, 5));
+        textPanel.setOpaque(false);
         
         lblWelcome = new JLabel("Selamat Datang, " + SessionManager.getCurrentUserFullName());
-        lblWelcome.setFont(new Font("Arial", Font.BOLD, 22));
+        lblWelcome.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblWelcome.setForeground(Color.WHITE);
         
         lblRole = new JLabel("Role: Kasir");
-        lblRole.setFont(new Font("Arial", Font.PLAIN, 16));
-        lblRole.setForeground(Color.WHITE);
+        lblRole.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        lblRole.setForeground(new Color(230, 230, 230));
         
-        userInfoPanel.add(Box.createVerticalGlue());
-        userInfoPanel.add(lblWelcome);
-        userInfoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        userInfoPanel.add(lblRole);
-        userInfoPanel.add(Box.createVerticalGlue());
+        textPanel.add(lblWelcome);
+        textPanel.add(lblRole);
         
-        headerPanel.add(userInfoPanel, BorderLayout.WEST);
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        titlePanel.add(logoLabel);
+        titlePanel.add(Box.createRigidArea(new Dimension(15, 0)));
+        titlePanel.add(textPanel);
         
-        // Menu Panel
-        JPanel menuPanel = new JPanel();
-        menuPanel.setLayout(new GridLayout(3, 2, 15, 15));
-        menuPanel.setBackground(Color.WHITE);
-        menuPanel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
-        
-        // Create Menu Buttons
-        btnBuatBooking = createMenuButton("Buat Booking Baru", new Color(46, 204, 113));
-        btnPembayaran = createMenuButton("Kelola Pembayaran", new Color(52, 73, 94));
-        btnLihatBus = createMenuButton("Lihat Daftar Bus", new Color(52, 152, 219));
-        btnManagePelanggan = createMenuButton("Kelola Pelanggan", new Color(241, 196, 15));
-        btnRiwayatTransaksi = createMenuButton("Riwayat Transaksi", new Color(155, 89, 182));
-        btnLogout = createMenuButton("Logout", new Color(231, 76, 60));
-        
-        menuPanel.add(btnBuatBooking);
-        menuPanel.add(btnPembayaran);
-        menuPanel.add(btnLihatBus);
-        menuPanel.add(btnManagePelanggan);
-        menuPanel.add(btnRiwayatTransaksi);
-        menuPanel.add(btnLogout);
-        
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(menuPanel, BorderLayout.CENTER);
-        add(mainPanel);
-        
-        // Event Listeners
-        btnBuatBooking.addActionListener(e -> buatBooking());
-        btnPembayaran.addActionListener(e -> kelolaPembayaran());
-        btnLihatBus.addActionListener(e -> lihatBus());
-        btnManagePelanggan.addActionListener(e -> managePelanggan());
-        btnRiwayatTransaksi.addActionListener(e -> riwayatTransaksi());
-        btnLogout.addActionListener(e -> logout());
+        headerPanel.add(titlePanel);
+        return headerPanel;
     }
-    
-    private JButton createMenuButton(String text, Color color) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 16));
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(color.darker(), 2));
+
+    private JPanel createCardPanel() {
+        JPanel panel = new JPanel() {
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(1000, 450);
+            }
+        };
+        panel.setLayout(new WrapLayout(WrapLayout.CENTER, 30, 25));
+        panel.setOpaque(false);
+
+        Object[][] menuItems = {
+            {"Buat Booking Baru", "➕", SUCCESS, (ActionListener) e -> buatBooking()},
+            {"Kelola Pembayaran", "💰", DARK_BLUE, (ActionListener) e -> kelolaPembayaran()},
+            {"Lihat Daftar Bus", "🚌", INFO, (ActionListener) e -> lihatBus()},
+            {"Kelola Pelanggan", "👨", WARNING, (ActionListener) e -> managePelanggan()},
+            {"Riwayat Transaksi", "📊", PURPLE, (ActionListener) e -> riwayatTransaksi()},
+            {"Logout", "🚪", DANGER, (ActionListener) e -> logout()}
+        };
+
+        for (Object[] item : menuItems) {
+            String title = (String) item[0];
+            String icon = (String) item[1];
+            Color color = (Color) item[2];
+            ActionListener action = (ActionListener) item[3];
+            
+            JPanel card = createRoundedCard(title, icon, color, action);
+            panel.add(card);
+        }
         
-        button.addMouseListener(new MouseAdapter() {
+        return panel;
+    }
+
+    private JPanel createRoundedCard(String title, String icon, Color color, ActionListener action) {
+        JPanel card = new JPanel(new BorderLayout(0, 15)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                RoundRectangle2D rect = new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15);
+                g2.setColor(Color.WHITE);
+                g2.fill(rect);
+                
+                g2.setColor(new Color(0, 0, 0, 20));
+                RoundRectangle2D shadow = new RoundRectangle2D.Float(2, 2, getWidth()-4, getHeight()-4, 15, 15);
+                g2.fill(shadow);
+                
+                g2.setColor(new Color(230, 230, 230));
+                g2.draw(rect);
+            }
+        };
+        card.setPreferredSize(new Dimension(320, 220));
+        card.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        card.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+
+        JPanel iconPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                int size = 60;
+                int x = (getWidth() - size) / 2;
+                int y = (getHeight() - size) / 2;
+                RoundRectangle2D rect = new RoundRectangle2D.Float(x, y, size, size, 12, 12);
+                g2.setColor(color);
+                g2.fill(rect);
+            }
+        };
+        iconPanel.setPreferredSize(new Dimension(70, 70));
+        
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        iconLabel.setForeground(Color.WHITE);
+        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        iconLabel.setVerticalAlignment(SwingConstants.CENTER);
+        iconPanel.add(iconLabel);
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setForeground(DARK);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        JLabel descLabel = new JLabel(getDescription(title));
+        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        descLabel.setForeground(GRAY);
+        descLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        card.add(iconPanel, BorderLayout.NORTH);
+        card.add(titleLabel, BorderLayout.CENTER);
+        card.add(descLabel, BorderLayout.SOUTH);
+
+        card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                button.setBackground(color.darker());
+                card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(color, 2),
+                    BorderFactory.createEmptyBorder(23, 23, 23, 23)
+                ));
+                titleLabel.setForeground(color);
             }
             
             @Override
             public void mouseExited(MouseEvent e) {
-                button.setBackground(color);
+                card.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+                titleLabel.setForeground(DARK);
             }
         });
-        
-        return button;
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                action.actionPerformed(null);
+            }
+        });
+
+        return card;
     }
-    
+
+    private String getDescription(String title) {
+        switch (title) {
+            case "Buat Booking Baru": return "Buat pemesanan bus baru";
+            case "Kelola Pembayaran": return "Kelola pembayaran booking";
+            case "Lihat Daftar Bus": return "Lihat ketersediaan bus";
+            case "Kelola Pelanggan": return "Tambah/edit data pelanggan";
+            case "Riwayat Transaksi": return "Lihat transaksi terbaru";
+            case "Logout": return "Keluar dari sistem";
+            default: return "";
+        }
+    }
+
+    private static class WrapLayout extends FlowLayout {
+        public WrapLayout(int align, int hgap, int vgap) {
+            super(align, hgap, vgap);
+        }
+
+        @Override
+        public Dimension preferredLayoutSize(Container target) {
+            synchronized (target.getTreeLock()) {
+                int hgap = getHgap();
+                int vgap = getVgap();
+                Insets insets = target.getInsets();
+                int maxWidth = target.getWidth() - (insets.left + insets.right + hgap * 2);
+                
+                int x = 0, y = insets.top, rowHeight = 0;
+                for (Component c : target.getComponents()) {
+                    if (c.isVisible()) {
+                        Dimension d = c.getPreferredSize();
+                        if (x == 0 || x + d.width <= maxWidth) {
+                            x += d.width + hgap;
+                            rowHeight = Math.max(rowHeight, d.height);
+                        } else {
+                            y += rowHeight + vgap;
+                            rowHeight = d.height;
+                            x = d.width + hgap;
+                        }
+                    }
+                }
+                y += rowHeight + insets.bottom;
+                return new Dimension(maxWidth, y);
+            }
+        }
+    }
+
     private void buatBooking() {
-        new FormBooking().setVisible(true);
+        SwingUtilities.invokeLater(() -> new FormBooking().setVisible(true));
     }
     
     private void kelolaPembayaran() {
-        new FormPembayaran().setVisible(true);
+        SwingUtilities.invokeLater(() -> new FormPembayaran().setVisible(true));
     }
     
     private void lihatBus() {
-        new FormBus().setVisible(true);
+        SwingUtilities.invokeLater(() -> new FormBus().setVisible(true));
     }
     
     private void managePelanggan() {
-        new FormPelanggan().setVisible(true);
+        SwingUtilities.invokeLater(() -> new FormPelanggan().setVisible(true));
     }
     
     private void riwayatTransaksi() {
@@ -151,7 +345,7 @@ public class DashboardKasir extends JFrame {
         if (confirm == JOptionPane.YES_OPTION) {
             SessionManager.logout();
             this.dispose();
-            new FormLogin().setVisible(true);
+            SwingUtilities.invokeLater(() -> new FormLogin().setVisible(true));
         }
     }
 }

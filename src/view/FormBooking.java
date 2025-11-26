@@ -6,8 +6,10 @@ import service.BookingService;
 import util.SessionManager;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.RoundRectangle2D;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -32,6 +34,21 @@ public class FormBooking extends JFrame {
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
     
+    // Warna tema
+    private final Color PRIMARY = new Color(41, 128, 185);
+    private final Color PRIMARY_DARK = new Color(31, 97, 141);
+    private final Color SECONDARY = new Color(52, 152, 219);
+    private final Color SUCCESS = new Color(46, 204, 113);
+    private final Color INFO = new Color(52, 152, 219);
+    private final Color WARNING = new Color(241, 196, 15);
+    private final Color DANGER = new Color(231, 76, 60);
+    private final Color LIGHT = new Color(248, 249, 250);
+    private final Color DARK = new Color(52, 58, 64);
+    private final Color GRAY = new Color(206, 212, 218);
+    private final Color LIGHT_GRAY = new Color(233, 236, 239);
+    private final Color MEDIUM_GRAY = new Color(200, 200, 200);
+    private final Color FOCUS_BLUE = new Color(60, 140, 200);
+    
     public FormBooking() {
         bookingDAO = new BookingDAO();
         pelangganDAO = new PelangganDAO();
@@ -45,52 +62,29 @@ public class FormBooking extends JFrame {
     
     private void initComponents() {
         setTitle("Kelola Booking & Transaksi");
-        setSize(1200, 750);
+        setSize(1300, 750);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout());
         
-        // Main Panel
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // Header Panel dengan gradient
+        JPanel headerPanel = createHeaderPanel();
+        add(headerPanel, BorderLayout.NORTH);
         
-        // Header
-        JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(46, 204, 113));
-        JLabel lblTitle = new JLabel("MANAJEMEN BOOKING & TRANSAKSI");
-        lblTitle.setFont(new Font("Arial", Font.BOLD, 24));
-        lblTitle.setForeground(Color.WHITE);
-        headerPanel.add(lblTitle);
+        // Main Content
+        JPanel contentPanel = new JPanel(new BorderLayout(12, 12));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
         
-        // Form Panel - Using Tabbed Pane
-        JTabbedPane tabbedPane = new JTabbedPane();
+        // Form Panel (tanpa tab)
+        JPanel formPanel = createBookingPanel();
         
-        // Tab 1: Data Booking
-        JPanel bookingPanel = createBookingPanel();
-        tabbedPane.addTab("Data Booking", bookingPanel);
-        
-        // Table
-        String[] columns = {"ID", "Kode", "Pelanggan", "Bus", "Tgl Mulai", "Tgl Selesai", "Tujuan", "Lama", "Total", "Status"};
-        tableModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        tableBooking = new JTable(tableModel);
-        tableBooking.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tableBooking.getColumnModel().getColumn(0).setPreferredWidth(50);
-        tableBooking.getColumnModel().getColumn(7).setPreferredWidth(60);
-        
-        JScrollPane scrollTable = new JScrollPane(tableBooking);
+        // Table Panel
+        JPanel tablePanel = createTablePanel();
         
         // Layout
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(tabbedPane, BorderLayout.CENTER);
+        contentPanel.add(formPanel, BorderLayout.NORTH);
+        contentPanel.add(tablePanel, BorderLayout.CENTER);
         
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(topPanel, BorderLayout.NORTH);
-        mainPanel.add(scrollTable, BorderLayout.CENTER);
-        
-        add(mainPanel);
+        add(contentPanel, BorderLayout.CENTER);
         
         // Event Listeners
         btnTambah.addActionListener(e -> tambahBooking());
@@ -113,115 +107,144 @@ public class FormBooking extends JFrame {
         setButtonState(false);
     }
     
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, PRIMARY,
+                    getWidth(), getHeight(), PRIMARY_DARK
+                );
+                g2.setPaint(gradient);
+                g2.fill(new Rectangle(0, 0, getWidth(), getHeight()));
+            }
+        };
+        headerPanel.setPreferredSize(new Dimension(0, 80));
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
+
+        JLabel titleLabel = new JLabel("🚌 MANAJEMEN BOOKING & TRANSAKSI");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        titleLabel.setForeground(Color.WHITE);
+        
+        JLabel subtitleLabel = new JLabel("Kelola pemesanan dan transaksi bus");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subtitleLabel.setForeground(new Color(220, 220, 220));
+
+        headerPanel.add(titleLabel);
+        headerPanel.add(Box.createRigidArea(new Dimension(0, 3)));
+        headerPanel.add(subtitleLabel);
+
+        return headerPanel;
+    }
+    
     private JPanel createBookingPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel panel = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                RoundRectangle2D rect = new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setColor(Color.WHITE);
+                g2.fill(rect);
+                
+                g2.setColor(new Color(0, 0, 0, 8));
+                g2.draw(new RoundRectangle2D.Float(1, 1, getWidth()-2, getHeight()-2, 12, 12));
+            }
+        };
+        panel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220)), 
+            "📋 Form Input Booking"
+        ));
+        panel.setPreferredSize(new Dimension(0, 380));
+        
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(6, 12, 6, 12);
         
-        // Row 0 - Kode Booking
+        // ✅ ROW 0: Kode Booking — DIPERBESAR & MENONJOL
         gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("Kode Booking:"), gbc);
-        gbc.gridx = 1;
-        txtKodeBooking = new JTextField(20);
+        txtKodeBooking = new JTextField() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (getText().isEmpty() && !hasFocus()) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(150, 150, 150));
+                    g2.setFont(getFont().deriveFont(Font.BOLD | Font.ITALIC, 13));
+                    g2.drawString("Contoh: BK-2025-001", getInsets().left + 6, getHeight()/2 + 3);
+                }
+            }
+        };
+        txtKodeBooking.setFont(new Font("Segoe UI", Font.BOLD, 14));
         txtKodeBooking.setEditable(false);
-        txtKodeBooking.setBackground(Color.LIGHT_GRAY);
-        panel.add(txtKodeBooking, gbc);
-        
-        // Row 0 - Status
-        gbc.gridx = 2;
-        panel.add(new JLabel("Status:"), gbc);
-        gbc.gridx = 3;
-        cmbStatus = new JComboBox<>(new String[]{"pending", "dikonfirmasi", "selesai", "dibatalkan"});
-        panel.add(cmbStatus, gbc);
-        
+        txtKodeBooking.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(MEDIUM_GRAY, 1),
+            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        addFieldFocusListener(txtKodeBooking, true); // khusus kode booking
+        panel.add(createInputField("📋 Kode Booking", txtKodeBooking), gbc);
+
+        // Status
+        gbc.gridx = 1;
+        panel.add(createInputField("📊 Status", cmbStatus = createStatusComboBox()), gbc);
+
         // Row 1 - Pelanggan
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("Pelanggan:"), gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3;
-        cmbPelanggan = new JComboBox<>();
-        panel.add(cmbPelanggan, gbc);
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
+        panel.add(createInputField("👤 Pelanggan", cmbPelanggan = createComboBox()), gbc);
         gbc.gridwidth = 1;
-        
+
         // Row 2 - Bus
-        gbc.gridx = 0; gbc.gridy = 2;
-        panel.add(new JLabel("Bus:"), gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3;
-        cmbBus = new JComboBox<>();
-        panel.add(cmbBus, gbc);
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        panel.add(createInputField("🚌 Bus", cmbBus = createComboBox()), gbc);
         gbc.gridwidth = 1;
-        
-        // Row 3 - Tanggal Mulai
+
+        // Row 3 - Tanggal Mulai & Tanggal Selesai — UKURAN SAMA PERSIS
         gbc.gridx = 0; gbc.gridy = 3;
-        panel.add(new JLabel("Tanggal Mulai:"), gbc);
+        dateStart = createDateChooser();
+        panel.add(createInputField("📅 Tgl Mulai", dateStart), gbc);
+
         gbc.gridx = 1;
-        dateStart = new JDateChooser();
-        dateStart.setDateFormatString("dd/MM/yyyy");
-        dateStart.setMinSelectableDate(new Date());
-        panel.add(dateStart, gbc);
-        
-        // Row 3 - Tanggal Selesai
-        gbc.gridx = 2;
-        panel.add(new JLabel("Tanggal Selesai:"), gbc);
-        gbc.gridx = 3;
-        dateEnd = new JDateChooser();
-        dateEnd.setDateFormatString("dd/MM/yyyy");
-        dateEnd.setMinSelectableDate(new Date());
-        panel.add(dateEnd, gbc);
-        
-        // Row 4 - Tujuan
+        dateEnd = createDateChooser();
+        panel.add(createInputField("📅 Tgl Selesai", dateEnd), gbc);
+
+        // Row 4 - Tujuan & Jumlah Penumpang
         gbc.gridx = 0; gbc.gridy = 4;
-        panel.add(new JLabel("Tujuan:"), gbc);
+        panel.add(createInputField("📍 Tujuan", txtTujuan = createTextField(true)), gbc);
+
         gbc.gridx = 1;
-        txtTujuan = new JTextField(20);
-        panel.add(txtTujuan, gbc);
-        
-        // Row 4 - Jumlah Penumpang
-        gbc.gridx = 2;
-        panel.add(new JLabel("Jumlah Penumpang:"), gbc);
-        gbc.gridx = 3;
-        txtJumlahPenumpang = new JTextField(20);
-        panel.add(txtJumlahPenumpang, gbc);
-        
-        // Row 5 - Lama Sewa
+        panel.add(createInputField("👥 Jml Penumpang", txtJumlahPenumpang = createTextField(true)), gbc);
+
+        // Row 5 - Lama Sewa & Total Harga
         gbc.gridx = 0; gbc.gridy = 5;
-        panel.add(new JLabel("Lama Sewa (hari):"), gbc);
+        panel.add(createInputField("⏱️ Lama Sewa (hari)", txtLamaSewa = createTextField(false)), gbc);
+
         gbc.gridx = 1;
-        txtLamaSewa = new JTextField(20);
-        txtLamaSewa.setEditable(false);
-        txtLamaSewa.setBackground(Color.LIGHT_GRAY);
-        panel.add(txtLamaSewa, gbc);
-        
-        // Row 5 - Total Harga
-        gbc.gridx = 2;
-        panel.add(new JLabel("Total Harga:"), gbc);
-        gbc.gridx = 3;
-        txtTotalHarga = new JTextField(20);
-        txtTotalHarga.setEditable(false);
-        txtTotalHarga.setBackground(Color.LIGHT_GRAY);
-        panel.add(txtTotalHarga, gbc);
-        
+        panel.add(createInputField("💰 Total Harga", txtTotalHarga = createTextField(false)), gbc);
+
         // Row 6 - Catatan
-        gbc.gridx = 0; gbc.gridy = 6;
-        panel.add(new JLabel("Catatan:"), gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3;
-        txtCatatan = new JTextArea(3, 20);
-        txtCatatan.setLineWrap(true);
-        JScrollPane scrollCatatan = new JScrollPane(txtCatatan);
-        panel.add(scrollCatatan, gbc);
-        
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
+        panel.add(createInputField("📝 Catatan", txtCatatan = createTextArea()), gbc);
+        gbc.gridwidth = 1;
+
         // Row 7 - Buttons
-        gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 4;
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
-        
-        btnTambah = createButton("Buat Booking", new Color(46, 204, 113));
-        btnUpdate = createButton("Update", new Color(52, 152, 219));
-        btnHapus = createButton("Hapus", new Color(231, 76, 60));
-        btnBatal = createButton("Batal", new Color(149, 165, 166));
-        btnRefresh = createButton("Refresh", new Color(241, 196, 15));
-        btnHitung = createButton("Hitung Total", new Color(230, 126, 34));
-        
+        gbc.gridy = 7; gbc.gridx = 0; gbc.gridwidth = 2;
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 8));
+
+        btnTambah = createModernButton("➕ Buat", SUCCESS);
+        btnUpdate = createModernButton("✏️ Ubah", INFO);
+        btnHapus = createModernButton("🗑️ Hapus", DANGER);
+        btnBatal = createModernButton("↩️ Batal", new Color(149, 165, 166));
+        btnRefresh = createModernButton("⟳ Segarkan", WARNING);
+        btnHitung = createModernButton("💱 Hitung", new Color(230, 126, 34));
+
         buttonPanel.add(btnTambah);
         buttonPanel.add(btnUpdate);
         buttonPanel.add(btnHapus);
@@ -229,32 +252,295 @@ public class FormBooking extends JFrame {
         buttonPanel.add(btnHitung);
         buttonPanel.add(btnRefresh);
         panel.add(buttonPanel, gbc);
-        
+
+        // Hover effect
+        addHoverEffect(btnTambah, SUCCESS);
+        addHoverEffect(btnUpdate, INFO);
+        addHoverEffect(btnHapus, DANGER);
+        addHoverEffect(btnBatal, new Color(149, 165, 166));
+        addHoverEffect(btnRefresh, WARNING);
+        addHoverEffect(btnHitung, new Color(230, 126, 34));
+
         return panel;
     }
     
-    private JButton createButton(String text, Color color) {
-        JButton button = new JButton(text);
-        button.setBackground(color);
+    private JPanel createTablePanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        
+        String[] columns = {"ID", "Kode", "Pelanggan", "Bus", "Tgl Mulai", "Tgl Selesai", "Tujuan", "Lama", "Total", "Status"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        tableBooking = new JTable(tableModel) {
+            @Override
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                if (!isRowSelected(row)) {
+                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(248, 249, 250));
+                }
+                return c;
+            }
+        };
+
+        tableBooking.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tableBooking.setRowHeight(30);
+        tableBooking.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tableBooking.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        tableBooking.getTableHeader().setBackground(PRIMARY);
+        tableBooking.getTableHeader().setForeground(Color.WHITE);
+        tableBooking.getTableHeader().setPreferredSize(new Dimension(0, 36));
+        tableBooking.setGridColor(new Color(235, 235, 235));
+
+        int[] widths = {40, 90, 150, 150, 80, 80, 120, 60, 100, 90};
+        for (int i = 0; i < widths.length; i++) {
+            tableBooking.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+        }
+
+        tableBooking.getColumnModel().getColumn(9).setCellRenderer(new StatusCellRenderer());
+
+        JScrollPane scrollTable = new JScrollPane(tableBooking);
+        scrollTable.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220)), 
+            "📊 Daftar Booking"
+        ));
+        
+        panel.add(scrollTable, BorderLayout.CENTER);
+        return panel;
+    }
+    
+    private JPanel createInputField(String label, JComponent field) {
+        JPanel panel = new JPanel(new BorderLayout(6, 6));
+        JLabel lbl = new JLabel(label);
+        // Jika field adalah txtKodeBooking, gunakan font lebih besar
+        if (field == txtKodeBooking) {
+            lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        } else {
+            lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        }
+        panel.add(lbl, BorderLayout.WEST);
+        
+        if (field instanceof JTextArea) {
+            JTextArea textArea = (JTextArea) field;
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setPreferredSize(new Dimension(250, 50));
+            panel.add(scrollPane, BorderLayout.CENTER);
+            return panel;
+        }
+        
+        panel.add(field, BorderLayout.CENTER);
+        return panel;
+    }
+    
+    private JTextField createTextField(boolean editable) {
+        JTextField field = new JTextField() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (getText().isEmpty() && !hasFocus()) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(180, 180, 180));
+                    g2.setFont(getFont().deriveFont(Font.ITALIC, 11));
+                    g2.drawString("Ketik di sini...", getInsets().left + 4, getHeight()/2 + 2);
+                }
+            }
+        };
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        field.setEditable(editable);
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(LIGHT_GRAY, 1),
+            BorderFactory.createEmptyBorder(6, 10, 6, 10)
+        ));
+        addFieldFocusListener(field);
+        return field;
+    }
+    
+    private JTextArea createTextArea() {
+        JTextArea area = new JTextArea(2, 25);
+        area.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(LIGHT_GRAY, 1),
+            BorderFactory.createEmptyBorder(6, 10, 6, 10)
+        ));
+        addFieldFocusListener(area);
+        return area;
+    }
+    
+    private JComboBox<String> createComboBox() {
+        JComboBox<String> combo = new JComboBox<>();
+        combo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        combo.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(LIGHT_GRAY, 1),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        combo.setPreferredSize(new Dimension(250, 26));
+        return combo;
+    }
+    
+    private JComboBox<String> createStatusComboBox() {
+        JComboBox<String> combo = new JComboBox<>(new String[]{"pending", "dikonfirmasi", "selesai", "dibatalkan"});
+        combo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        combo.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(LIGHT_GRAY, 1),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        combo.setPreferredSize(new Dimension(250, 26));
+        return combo;
+    }
+    
+    private JDateChooser createDateChooser() {
+        JDateChooser dateChooser = new JDateChooser();
+        dateChooser.setDateFormatString("dd/MM/yyyy");
+        dateChooser.setMinSelectableDate(new Date());
+        dateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        dateChooser.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(LIGHT_GRAY, 1),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        // ✅ UKURAN EKSAK & KONSISTEN
+        Dimension size = new Dimension(250, 26);
+        dateChooser.setPreferredSize(size);
+        dateChooser.setMinimumSize(size);
+        dateChooser.setMaximumSize(size);
+        return dateChooser;
+    }
+    
+    // ⭐ Versi standar (untuk field biasa)
+    private void addFieldFocusListener(JComponent field) {
+        field.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(PRIMARY, 2),
+                    BorderFactory.createEmptyBorder(5, 9, 5, 9)
+                ));
+            }
+            @Override
+            public void focusLost(FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(LIGHT_GRAY, 1),
+                    BorderFactory.createEmptyBorder(6, 10, 6, 10)
+                ));
+            }
+        });
+    }
+    
+    // ⭐ Versi khusus untuk Kode Booking (lebih tebal & mencolok)
+    private void addFieldFocusListener(JComponent field, boolean isKodeBooking) {
+        if (isKodeBooking) {
+            field.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    field.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(FOCUS_BLUE, 2),
+                        BorderFactory.createEmptyBorder(7, 11, 7, 11)
+                    ));
+                }
+                @Override
+                public void focusLost(FocusEvent e) {
+                    field.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(MEDIUM_GRAY, 1),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                    ));
+                }
+            });
+        } else {
+            addFieldFocusListener(field);
+        }
+    }
+    
+    private JButton createModernButton(String text, Color bgColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
+                
+                super.paintComponent(g);
+            }
+        };
+        
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(true);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        button.setBackground(bgColor);
+        
         return button;
     }
     
+    private void addHoverEffect(JButton button, Color baseColor) {
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(baseColor.darker());
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(baseColor);
+            }
+            @Override
+            public void mousePressed(MouseEvent e) {
+                button.setBackground(baseColor.darker().darker());
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                button.setBackground(button.getModel().isRollover() ? baseColor.darker() : baseColor);
+            }
+        });
+    }
+    
+    private static class StatusCellRenderer extends JLabel implements TableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            setText(value == null ? "" : value.toString());
+            setOpaque(true);
+            
+            String status = value.toString();
+            if ("pending".equals(status)) {
+                setBackground(new Color(252, 248, 227));
+                setForeground(new Color(153, 126, 12));
+            } else if ("dikonfirmasi".equals(status)) {
+                setBackground(new Color(217, 237, 247));
+                setForeground(new Color(49, 112, 143));
+            } else if ("selesai".equals(status)) {
+                setBackground(new Color(223, 240, 216));
+                setForeground(new Color(46, 107, 46));
+            } else if ("dibatalkan".equals(status)) {
+                setBackground(new Color(248, 215, 218));
+                setForeground(new Color(169, 68, 66));
+            }
+            
+            setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+            setFont(new Font("Segoe UI", Font.BOLD, 11));
+            return this;
+        }
+    }
+    
     private void loadComboBoxData() {
-        // Load Pelanggan
         cmbPelanggan.removeAllItems();
         List<Pelanggan> pelangganList = pelangganDAO.getAllPelanggan();
         for (Pelanggan p : pelangganList) {
-            cmbPelanggan.addItem(p.getIdPelanggan() + " - " + p.getNamaPelanggan() + " (" + p.getNoTelp() + ")");
+            cmbPelanggan.addItem(p.getIdPelanggan() + " - " + p.getNamaPelanggan());
         }
         
-        // Load Bus Tersedia
         cmbBus.removeAllItems();
         List<Bus> busList = busDAO.getBusTersedia();
         for (Bus b : busList) {
-            cmbBus.addItem(b.getIdBus() + " - " + b.getNoPolisi() + " (" + b.getTipeBus() + " - " + b.getKapasitas() + " seat)");
+            cmbBus.addItem(b.getIdBus() + " - " + b.getNoPolisi() + " (" + b.getTipeBus() + ")");
         }
     }
     
@@ -268,10 +554,10 @@ public class FormBooking extends JFrame {
                 booking.getKodeBooking(),
                 booking.getNamaPelanggan(),
                 booking.getNoPolisi(),
-                new SimpleDateFormat("dd/MM/yyyy").format(booking.getTanggalMulai()),
-                new SimpleDateFormat("dd/MM/yyyy").format(booking.getTanggalSelesai()),
+                new SimpleDateFormat("dd/MM/yy").format(booking.getTanggalMulai()),
+                new SimpleDateFormat("dd/MM/yy").format(booking.getTanggalSelesai()),
                 booking.getTujuan(),
-                booking.getLamaSewa() + " hari",
+                booking.getLamaSewa(),
                 currencyFormat.format(booking.getTotalHarga()),
                 booking.getStatusBooking()
             };
@@ -292,67 +578,67 @@ public class FormBooking extends JFrame {
         booking.setTujuan(txtTujuan.getText().trim());
         booking.setJumlahPenumpang(Integer.parseInt(txtJumlahPenumpang.getText().trim()));
         booking.setLamaSewa(Integer.parseInt(txtLamaSewa.getText().trim()));
-        booking.setTotalHarga(Double.parseDouble(txtTotalHarga.getText().replace("Rp", "").replace(".", "").replace(",", ".").trim()));
+        booking.setTotalHarga(Double.parseDouble(txtTotalHarga.getText()
+            .replace("Rp", "").replace(".", "").replace(",", ".").trim()));
         booking.setStatusBooking(cmbStatus.getSelectedItem().toString());
         booking.setCatatan(txtCatatan.getText().trim());
         
         if (bookingDAO.tambahBooking(booking)) {
-            // Update status bus menjadi disewa
             busDAO.updateStatusBus(booking.getIdBus(), "disewa");
             
             JOptionPane.showMessageDialog(this, 
-                "Booking berhasil dibuat!\nKode Booking: " + booking.getKodeBooking(), 
+                "✅ Booking berhasil dibuat!\nKode: " + booking.getKodeBooking(), 
                 "Sukses", 
                 JOptionPane.INFORMATION_MESSAGE);
             loadData();
             loadComboBoxData();
             clearForm();
         } else {
-            JOptionPane.showMessageDialog(this, "Gagal membuat booking!", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "❌ Gagal membuat booking!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     
     private void updateBooking() {
-    if (selectedId == -1) {
-        JOptionPane.showMessageDialog(this, "Pilih booking yang akan diupdate!", "Peringatan", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-    
-    if (!validateInputUpdate()) return;
-    
-    // Ambil data booking lama untuk mendapatkan ID Bus
-    Booking oldBooking = bookingDAO.getBookingById(selectedId);
-    
-    Booking booking = new Booking();
-    booking.setIdBooking(selectedId);
-    booking.setIdBus(oldBooking.getIdBus()); // Penting untuk update status bus
-    booking.setTanggalMulai(dateStart.getDate());
-    booking.setTanggalSelesai(dateEnd.getDate());
-    booking.setTujuan(txtTujuan.getText().trim());
-    booking.setJumlahPenumpang(Integer.parseInt(txtJumlahPenumpang.getText().trim()));
-    booking.setLamaSewa(Integer.parseInt(txtLamaSewa.getText().trim()));
-    booking.setTotalHarga(Double.parseDouble(txtTotalHarga.getText().replace("Rp", "").replace(".", "").replace(",", ".").trim()));
-    booking.setStatusBooking(cmbStatus.getSelectedItem().toString());
-    booking.setCatatan(txtCatatan.getText().trim());
-    
-    if (bookingDAO.updateBooking(booking)) {
-        String message = "Booking berhasil diupdate!";
-        
-        // Informasi tambahan jika status berubah ke selesai/dibatalkan
-        if (booking.getStatusBooking().equals("selesai") || booking.getStatusBooking().equals("dibatalkan")) {
-            message += "\nStatus bus telah diubah menjadi 'tersedia'";
-        } else if (booking.getStatusBooking().equals("dikonfirmasi")) {
-            message += "\nStatus bus telah diubah menjadi 'disewa'";
+        if (selectedId == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih booking yang akan diupdate!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
         }
         
-        JOptionPane.showMessageDialog(this, message, "Sukses", JOptionPane.INFORMATION_MESSAGE);
-        loadData();
-        loadComboBoxData(); // Refresh combo bus
-        clearForm();
-    } else {
-        JOptionPane.showMessageDialog(this, "Gagal mengupdate booking!", "Error", JOptionPane.ERROR_MESSAGE);
+        if (!validateInputUpdate()) return;
+        
+        Booking oldBooking = bookingDAO.getBookingById(selectedId);
+        if (oldBooking == null) return;
+        
+        Booking booking = new Booking();
+        booking.setIdBooking(selectedId);
+        booking.setIdBus(oldBooking.getIdBus());
+        booking.setTanggalMulai(dateStart.getDate());
+        booking.setTanggalSelesai(dateEnd.getDate());
+        booking.setTujuan(txtTujuan.getText().trim());
+        booking.setJumlahPenumpang(Integer.parseInt(txtJumlahPenumpang.getText().trim()));
+        booking.setLamaSewa(Integer.parseInt(txtLamaSewa.getText().trim()));
+        booking.setTotalHarga(Double.parseDouble(txtTotalHarga.getText()
+            .replace("Rp", "").replace(".", "").replace(",", ".").trim()));
+        booking.setStatusBooking(cmbStatus.getSelectedItem().toString());
+        booking.setCatatan(txtCatatan.getText().trim());
+        
+        if (bookingDAO.updateBooking(booking)) {
+            String msg = "✅ Update berhasil!";
+            String status = booking.getStatusBooking();
+            if ("selesai".equals(status) || "dibatalkan".equals(status)) {
+                busDAO.updateStatusBus(booking.getIdBus(), "tersedia");
+                msg += "\nBus dikembalikan ke status 'tersedia'.";
+            } else if ("dikonfirmasi".equals(status)) {
+                busDAO.updateStatusBus(booking.getIdBus(), "disewa");
+            }
+            JOptionPane.showMessageDialog(this, msg, "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            loadData();
+            loadComboBoxData();
+            clearForm();
+        } else {
+            JOptionPane.showMessageDialog(this, "❌ Gagal mengupdate booking!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
-}
     
     private void hapusBooking() {
         if (selectedId == -1) {
@@ -361,13 +647,13 @@ public class FormBooking extends JFrame {
         }
         
         int confirm = JOptionPane.showConfirmDialog(this, 
-            "Apakah Anda yakin ingin menghapus booking ini?", 
-            "Konfirmasi Hapus", 
+            "Ingin menghapus booking ini?", 
+            "Konfirmasi", 
             JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
             JOptionPane.showMessageDialog(this, 
-                "Fitur hapus booking tidak diaktifkan.\nGunakan update status menjadi 'dibatalkan'.", 
+                "ℹ️ Hapus booking dinonaktifkan.\nUbah status ke 'dibatalkan' saja.", 
                 "Info", 
                 JOptionPane.INFORMATION_MESSAGE);
         }
@@ -377,18 +663,13 @@ public class FormBooking extends JFrame {
         if (dateStart.getDate() != null && dateEnd.getDate() != null) {
             long diff = dateEnd.getDate().getTime() - dateStart.getDate().getTime();
             long days = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
-            
-            if (days > 0) {
-                txtLamaSewa.setText(String.valueOf(days));
-            } else {
-                txtLamaSewa.setText("0");
-            }
+            txtLamaSewa.setText(days > 0 ? String.valueOf(days) : "0");
         }
     }
     
     private void hitungTotal() {
         if (cmbBus.getSelectedItem() == null || txtLamaSewa.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Pilih bus dan tentukan lama sewa terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Pilih bus dan isi lama sewa!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -396,8 +677,8 @@ public class FormBooking extends JFrame {
         Bus bus = busDAO.getBusById(idBus);
         
         if (bus != null) {
-            int lamaSewa = Integer.parseInt(txtLamaSewa.getText());
-            double total = bus.getHargaPerHari() * lamaSewa;
+            int lama = Integer.parseInt(txtLamaSewa.getText());
+            double total = bus.getHargaPerHari() * lama;
             txtTotalHarga.setText(currencyFormat.format(total));
         }
     }
@@ -418,14 +699,13 @@ public class FormBooking extends JFrame {
                 txtTotalHarga.setText(currencyFormat.format(booking.getTotalHarga()));
                 cmbStatus.setSelectedItem(booking.getStatusBooking());
                 txtCatatan.setText(booking.getCatatan());
-                
                 setButtonState(true);
             }
         }
     }
     
     private void clearForm() {
-        txtKodeBooking.setText("");
+        txtKodeBooking.setText(bookingDAO.generateKodeBooking()); // ✅ Auto-generate kode baru
         txtTujuan.setText("");
         txtJumlahPenumpang.setText("");
         txtLamaSewa.setText("");
@@ -450,8 +730,12 @@ public class FormBooking extends JFrame {
     
     private int getSelectedIdFromCombo(JComboBox<String> combo) {
         String selected = (String) combo.getSelectedItem();
-        if (selected != null) {
-            return Integer.parseInt(selected.split(" - ")[0]);
+        if (selected != null && selected.contains(" - ")) {
+            try {
+                return Integer.parseInt(selected.split(" - ")[0]);
+            } catch (NumberFormatException e) {
+                return -1;
+            }
         }
         return -1;
     }
@@ -460,14 +744,14 @@ public class FormBooking extends JFrame {
         if (cmbPelanggan.getSelectedItem() == null || cmbBus.getSelectedItem() == null ||
             dateStart.getDate() == null || dateEnd.getDate() == null ||
             txtTujuan.getText().trim().isEmpty() || txtJumlahPenumpang.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Semua field wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "⚠️ Semua field wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
         
         try {
             Integer.parseInt(txtJumlahPenumpang.getText().trim());
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Jumlah penumpang harus berupa angka!", "Validasi", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "⚠️ Jumlah penumpang harus angka!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
         
@@ -477,7 +761,7 @@ public class FormBooking extends JFrame {
     private boolean validateInputUpdate() {
         if (dateStart.getDate() == null || dateEnd.getDate() == null ||
             txtTujuan.getText().trim().isEmpty() || txtJumlahPenumpang.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Semua field wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "⚠️ Semua field wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
         return true;
