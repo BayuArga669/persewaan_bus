@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import com.toedter.calendar.JDateChooser;
+import java.util.Calendar;
 
 public class FormBooking extends JFrame {
     private JTable tableBooking;
@@ -31,9 +32,12 @@ public class FormBooking extends JFrame {
     private BusDAO busDAO;
     private BookingService bookingService;
     private int selectedId = -1;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
     
+    // Untuk validasi tanggal
+    private Date lastValidStart = new Date();
+    private Date lastValidEnd = new Date();
+
     // Warna tema
     private final Color PRIMARY = new Color(41, 128, 185);
     private final Color PRIMARY_DARK = new Color(31, 97, 141);
@@ -55,6 +59,10 @@ public class FormBooking extends JFrame {
         busDAO = new BusDAO();
         bookingService = new BookingService();
         initComponents();
+        
+        // ✅ Pastikan form kosong saat pertama dibuka
+        clearForm();
+        
         loadComboBoxData();
         loadData();
         setLocationRelativeTo(null);
@@ -66,36 +74,23 @@ public class FormBooking extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
         
-        // Header Panel dengan gradient
         JPanel headerPanel = createHeaderPanel();
         add(headerPanel, BorderLayout.NORTH);
         
-        // Main Content
         JPanel contentPanel = new JPanel(new BorderLayout(12, 12));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
-        
-        // Form Panel (tanpa tab)
         JPanel formPanel = createBookingPanel();
-        
-        // Table Panel
         JPanel tablePanel = createTablePanel();
-        
-        // Layout
         contentPanel.add(formPanel, BorderLayout.NORTH);
         contentPanel.add(tablePanel, BorderLayout.CENTER);
-        
         add(contentPanel, BorderLayout.CENTER);
         
-        // Event Listeners
         btnTambah.addActionListener(e -> tambahBooking());
         btnUpdate.addActionListener(e -> updateBooking());
         btnHapus.addActionListener(e -> hapusBooking());
         btnBatal.addActionListener(e -> clearForm());
         btnRefresh.addActionListener(e -> loadData());
         btnHitung.addActionListener(e -> hitungTotal());
-        
-        dateStart.addPropertyChangeListener("date", e -> hitungLamaSewa());
-        dateEnd.addPropertyChangeListener("date", e -> hitungLamaSewa());
         
         tableBooking.addMouseListener(new MouseAdapter() {
             @Override
@@ -114,11 +109,7 @@ public class FormBooking extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                GradientPaint gradient = new GradientPaint(
-                    0, 0, PRIMARY,
-                    getWidth(), getHeight(), PRIMARY_DARK
-                );
+                GradientPaint gradient = new GradientPaint(0, 0, PRIMARY, getWidth(), getHeight(), PRIMARY_DARK);
                 g2.setPaint(gradient);
                 g2.fill(new Rectangle(0, 0, getWidth(), getHeight()));
             }
@@ -130,15 +121,12 @@ public class FormBooking extends JFrame {
         JLabel titleLabel = new JLabel("🚌 MANAJEMEN BOOKING & TRANSAKSI");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
-        
         JLabel subtitleLabel = new JLabel("Kelola pemesanan dan transaksi bus");
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         subtitleLabel.setForeground(new Color(220, 220, 220));
-
         headerPanel.add(titleLabel);
         headerPanel.add(Box.createRigidArea(new Dimension(0, 3)));
         headerPanel.add(subtitleLabel);
-
         return headerPanel;
     }
     
@@ -149,11 +137,9 @@ public class FormBooking extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
                 RoundRectangle2D rect = new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12);
                 g2.setColor(Color.WHITE);
                 g2.fill(rect);
-                
                 g2.setColor(new Color(0, 0, 0, 8));
                 g2.draw(new RoundRectangle2D.Float(1, 1, getWidth()-2, getHeight()-2, 12, 12));
             }
@@ -168,7 +154,6 @@ public class FormBooking extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(6, 12, 6, 12);
         
-        // ✅ ROW 0: Kode Booking — DIPERBESAR & MENONJOL
         gbc.gridx = 0; gbc.gridy = 0;
         txtKodeBooking = new JTextField() {
             @Override
@@ -189,52 +174,44 @@ public class FormBooking extends JFrame {
             BorderFactory.createLineBorder(MEDIUM_GRAY, 1),
             BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
-        addFieldFocusListener(txtKodeBooking, true); // khusus kode booking
+        addFieldFocusListener(txtKodeBooking, true);
         panel.add(createInputField("📋 Kode Booking", txtKodeBooking), gbc);
 
-        // Status
         gbc.gridx = 1;
         panel.add(createInputField("📊 Status", cmbStatus = createStatusComboBox()), gbc);
 
-        // Row 1 - Pelanggan
         gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
         panel.add(createInputField("👤 Pelanggan", cmbPelanggan = createComboBox()), gbc);
         gbc.gridwidth = 1;
 
-        // Row 2 - Bus
         gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
         panel.add(createInputField("🚌 Bus", cmbBus = createComboBox()), gbc);
         gbc.gridwidth = 1;
 
-        // Row 3 - Tanggal Mulai & Tanggal Selesai — UKURAN SAMA PERSIS
         gbc.gridx = 0; gbc.gridy = 3;
-        dateStart = createDateChooser();
+        dateStart = createDateChooser(true);
         panel.add(createInputField("📅 Tgl Mulai", dateStart), gbc);
 
         gbc.gridx = 1;
-        dateEnd = createDateChooser();
+        dateEnd = createDateChooser(false);
         panel.add(createInputField("📅 Tgl Selesai", dateEnd), gbc);
 
-        // Row 4 - Tujuan & Jumlah Penumpang
         gbc.gridx = 0; gbc.gridy = 4;
         panel.add(createInputField("📍 Tujuan", txtTujuan = createTextField(true)), gbc);
 
         gbc.gridx = 1;
         panel.add(createInputField("👥 Jml Penumpang", txtJumlahPenumpang = createTextField(true)), gbc);
 
-        // Row 5 - Lama Sewa & Total Harga
         gbc.gridx = 0; gbc.gridy = 5;
         panel.add(createInputField("⏱️ Lama Sewa (hari)", txtLamaSewa = createTextField(false)), gbc);
 
         gbc.gridx = 1;
         panel.add(createInputField("💰 Total Harga", txtTotalHarga = createTextField(false)), gbc);
 
-        // Row 6 - Catatan
         gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
         panel.add(createInputField("📝 Catatan", txtCatatan = createTextArea()), gbc);
         gbc.gridwidth = 1;
 
-        // Row 7 - Buttons
         gbc.gridy = 7; gbc.gridx = 0; gbc.gridwidth = 2;
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 8));
 
@@ -253,7 +230,6 @@ public class FormBooking extends JFrame {
         buttonPanel.add(btnRefresh);
         panel.add(buttonPanel, gbc);
 
-        // Hover effect
         addHoverEffect(btnTambah, SUCCESS);
         addHoverEffect(btnUpdate, INFO);
         addHoverEffect(btnHapus, DANGER);
@@ -266,7 +242,6 @@ public class FormBooking extends JFrame {
     
     private JPanel createTablePanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        
         String[] columns = {"ID", "Kode", "Pelanggan", "Bus", "Tgl Mulai", "Tgl Selesai", "Tujuan", "Lama", "Total", "Status"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -307,7 +282,6 @@ public class FormBooking extends JFrame {
             BorderFactory.createLineBorder(new Color(220, 220, 220)), 
             "📊 Daftar Booking"
         ));
-        
         panel.add(scrollTable, BorderLayout.CENTER);
         return panel;
     }
@@ -315,14 +289,12 @@ public class FormBooking extends JFrame {
     private JPanel createInputField(String label, JComponent field) {
         JPanel panel = new JPanel(new BorderLayout(6, 6));
         JLabel lbl = new JLabel(label);
-        // Jika field adalah txtKodeBooking, gunakan font lebih besar
         if (field == txtKodeBooking) {
             lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
         } else {
             lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         }
         panel.add(lbl, BorderLayout.WEST);
-        
         if (field instanceof JTextArea) {
             JTextArea textArea = (JTextArea) field;
             JScrollPane scrollPane = new JScrollPane(textArea);
@@ -330,7 +302,6 @@ public class FormBooking extends JFrame {
             panel.add(scrollPane, BorderLayout.CENTER);
             return panel;
         }
-        
         panel.add(field, BorderLayout.CENTER);
         return panel;
     }
@@ -394,24 +365,66 @@ public class FormBooking extends JFrame {
         return combo;
     }
     
-    private JDateChooser createDateChooser() {
-        JDateChooser dateChooser = new JDateChooser();
-        dateChooser.setDateFormatString("dd/MM/yyyy");
-        dateChooser.setMinSelectableDate(new Date());
-        dateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        dateChooser.setBorder(BorderFactory.createCompoundBorder(
+    private JDateChooser createDateChooser(boolean isStartDate) {
+        JDateChooser chooser = new JDateChooser();
+        chooser.setDateFormatString("dd/MM/yyyy");
+        chooser.setMinSelectableDate(new Date());
+
+        if (isStartDate) {
+            chooser.setDate(lastValidStart);
+        } else {
+            chooser.setDate(lastValidEnd);
+        }
+
+        chooser.getDateEditor().addPropertyChangeListener("date", e -> {
+            Date selected = chooser.getDate();
+            if (selected == null) return;
+
+            int busId = getSelectedIdFromCombo(cmbBus);
+            if (busId <= 0) return;
+
+            List<Date> bookedDates = busDAO.getBookedDates(busId);
+            for (Date booked : bookedDates) {
+                if (isSameDay(selected, booked)) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "❌ Bus ini sudah dipesan pada tanggal " + 
+                        new SimpleDateFormat("dd MMM yyyy").format(booked) + ".\nSilakan pilih tanggal lain.",
+                        "Tanggal Tidak Tersedia",
+                        JOptionPane.WARNING_MESSAGE
+                    );
+                    if (isStartDate) {
+                        chooser.setDate(lastValidStart);
+                    } else {
+                        chooser.setDate(lastValidEnd);
+                    }
+                    return;
+                }
+            }
+
+            if (isStartDate) {
+                lastValidStart = selected;
+            } else {
+                lastValidEnd = selected;
+            }
+
+            if (dateStart.getDate() != null && dateEnd.getDate() != null) {
+                hitungLamaSewa();
+            }
+        });
+
+        chooser.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        chooser.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(LIGHT_GRAY, 1),
             BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
-        // ✅ UKURAN EKSAK & KONSISTEN
         Dimension size = new Dimension(250, 26);
-        dateChooser.setPreferredSize(size);
-        dateChooser.setMinimumSize(size);
-        dateChooser.setMaximumSize(size);
-        return dateChooser;
+        chooser.setPreferredSize(size);
+        chooser.setMinimumSize(size);
+        chooser.setMaximumSize(size);
+        return chooser;
     }
     
-    // ⭐ Versi standar (untuk field biasa)
     private void addFieldFocusListener(JComponent field) {
         field.addFocusListener(new FocusAdapter() {
             @Override
@@ -431,7 +444,6 @@ public class FormBooking extends JFrame {
         });
     }
     
-    // ⭐ Versi khusus untuk Kode Booking (lebih tebal & mencolok)
     private void addFieldFocusListener(JComponent field, boolean isKodeBooking) {
         if (isKodeBooking) {
             field.addFocusListener(new FocusAdapter() {
@@ -461,14 +473,11 @@ public class FormBooking extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
                 g2.setColor(getBackground());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
-                
                 super.paintComponent(g);
             }
         };
-        
         button.setFont(new Font("Segoe UI", Font.BOLD, 12));
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
@@ -478,7 +487,6 @@ public class FormBooking extends JFrame {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
         button.setBackground(bgColor);
-        
         return button;
     }
     
@@ -508,7 +516,6 @@ public class FormBooking extends JFrame {
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             setText(value == null ? "" : value.toString());
             setOpaque(true);
-            
             String status = value.toString();
             if ("pending".equals(status)) {
                 setBackground(new Color(252, 248, 227));
@@ -523,7 +530,6 @@ public class FormBooking extends JFrame {
                 setBackground(new Color(248, 215, 218));
                 setForeground(new Color(169, 68, 66));
             }
-            
             setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
             setFont(new Font("Segoe UI", Font.BOLD, 11));
             return this;
@@ -547,7 +553,6 @@ public class FormBooking extends JFrame {
     private void loadData() {
         tableModel.setRowCount(0);
         List<Booking> bookingList = bookingDAO.getAllBooking();
-        
         for (Booking booking : bookingList) {
             Object[] row = {
                 booking.getIdBooking(),
@@ -583,9 +588,15 @@ public class FormBooking extends JFrame {
         booking.setStatusBooking(cmbStatus.getSelectedItem().toString());
         booking.setCatatan(txtCatatan.getText().trim());
         
+        if (!busDAO.isBusAvailable(booking.getIdBus(), booking.getTanggalMulai(), booking.getTanggalSelesai())) {
+            JOptionPane.showMessageDialog(this,
+                "❌ Bus ini tidak tersedia pada rentang tanggal yang dipilih!",
+                "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         if (bookingDAO.tambahBooking(booking)) {
             busDAO.updateStatusBus(booking.getIdBus(), "disewa");
-            
             JOptionPane.showMessageDialog(this, 
                 "✅ Booking berhasil dibuat!\nKode: " + booking.getKodeBooking(), 
                 "Sukses", 
@@ -622,6 +633,13 @@ public class FormBooking extends JFrame {
         booking.setStatusBooking(cmbStatus.getSelectedItem().toString());
         booking.setCatatan(txtCatatan.getText().trim());
         
+        if (!busDAO.isBusAvailable(booking.getIdBus(), booking.getTanggalMulai(), booking.getTanggalSelesai(), selectedId)) {
+            JOptionPane.showMessageDialog(this,
+                "❌ Bus ini tidak tersedia pada rentang tanggal yang dipilih!",
+                "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         if (bookingDAO.updateBooking(booking)) {
             String msg = "✅ Update berhasil!";
             String status = booking.getStatusBooking();
@@ -645,12 +663,7 @@ public class FormBooking extends JFrame {
             JOptionPane.showMessageDialog(this, "Pilih booking yang akan dihapus!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        int confirm = JOptionPane.showConfirmDialog(this, 
-            "Ingin menghapus booking ini?", 
-            "Konfirmasi", 
-            JOptionPane.YES_NO_OPTION);
-        
+        int confirm = JOptionPane.showConfirmDialog(this, "Ingin menghapus booking ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             JOptionPane.showMessageDialog(this, 
                 "ℹ️ Hapus booking dinonaktifkan.\nUbah status ke 'dibatalkan' saja.", 
@@ -672,10 +685,8 @@ public class FormBooking extends JFrame {
             JOptionPane.showMessageDialog(this, "Pilih bus dan isi lama sewa!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
         int idBus = getSelectedIdFromCombo(cmbBus);
         Bus bus = busDAO.getBusById(idBus);
-        
         if (bus != null) {
             int lama = Integer.parseInt(txtLamaSewa.getText());
             double total = bus.getHargaPerHari() * lama;
@@ -688,7 +699,6 @@ public class FormBooking extends JFrame {
         if (row != -1) {
             selectedId = Integer.parseInt(tableModel.getValueAt(row, 0).toString());
             Booking booking = bookingDAO.getBookingById(selectedId);
-            
             if (booking != null) {
                 txtKodeBooking.setText(booking.getKodeBooking());
                 dateStart.setDate(booking.getTanggalMulai());
@@ -711,11 +721,11 @@ public class FormBooking extends JFrame {
         txtLamaSewa.setText("");
         txtTotalHarga.setText("");
         txtCatatan.setText("");
-        dateStart.setDate(null);
-        dateEnd.setDate(null);
-        cmbPelanggan.setSelectedIndex(-1);
-        cmbBus.setSelectedIndex(-1);
-        cmbStatus.setSelectedIndex(0);
+        dateStart.setDate(null);   // ✅ Kosongkan tanggal
+        dateEnd.setDate(null);     // ✅ Kosongkan tanggal
+        cmbPelanggan.setSelectedIndex(-1); // ✅ Kosongkan pelanggan
+        cmbBus.setSelectedIndex(-1);       // ✅ Kosongkan bus
+        cmbStatus.setSelectedIndex(-1);    // ✅ Kosongkan status (bukan 0!)
         selectedId = -1;
         tableBooking.clearSelection();
         setButtonState(false);
@@ -747,14 +757,12 @@ public class FormBooking extends JFrame {
             JOptionPane.showMessageDialog(this, "⚠️ Semua field wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
-        
         try {
             Integer.parseInt(txtJumlahPenumpang.getText().trim());
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "⚠️ Jumlah penumpang harus angka!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
-        
         return true;
     }
     
@@ -764,6 +772,30 @@ public class FormBooking extends JFrame {
             JOptionPane.showMessageDialog(this, "⚠️ Semua field wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
+
+        int busId = getSelectedIdFromCombo(cmbBus);
+        Date mulai = dateStart.getDate();
+        Date selesai = dateEnd.getDate();
+
+        // ✅ Gunakan selectedId sebagai excludeBookingId
+        if (!busDAO.isBusAvailable(busId, mulai, selesai, selectedId)) {
+            JOptionPane.showMessageDialog(this,
+                "❌ Bus ini tidak tersedia pada rentang tanggal yang dipilih!",
+                "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+
         return true;
+    }
+    
+    private boolean isSameDay(Date date1, Date date2) {
+        if (date1 == null || date2 == null) return false;
+        Calendar cal1 = Calendar.getInstance();
+        Calendar cal2 = Calendar.getInstance();
+        cal1.setTime(date1);
+        cal2.setTime(date2);
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+               cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+               cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
     }
 }
