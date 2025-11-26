@@ -1,0 +1,449 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:8889
+-- Generation Time: Nov 26, 2025 at 06:15 AM
+-- Server version: 8.0.40
+-- PHP Version: 8.3.14
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `db_busrental`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_assignment_sopir`
+--
+
+CREATE TABLE `tbl_assignment_sopir` (
+  `id_assignment` int NOT NULL,
+  `id_booking` int NOT NULL,
+  `id_sopir` int NOT NULL,
+  `fee_sopir` decimal(12,2) NOT NULL,
+  `status_bayar` enum('belum_bayar','dibayar') DEFAULT 'belum_bayar',
+  `tanggal_bayar` date DEFAULT NULL,
+  `keterangan` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `tbl_assignment_sopir`
+--
+
+INSERT INTO `tbl_assignment_sopir` (`id_assignment`, `id_booking`, `id_sopir`, `fee_sopir`, `status_bayar`, `tanggal_bayar`, `keterangan`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 500000.00, 'dibayar', NULL, 'Kerja kerja', '2025-11-21 00:26:57', '2025-11-21 00:43:24'),
+(2, 1, 1, 500000.00, 'dibayar', '2025-11-21', 'test', '2025-11-21 00:27:20', '2025-11-21 00:43:31'),
+(3, 3, 2, 50000.00, 'belum_bayar', NULL, '', '2025-11-22 08:32:49', '2025-11-22 08:32:49');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_booking`
+--
+
+CREATE TABLE `tbl_booking` (
+  `id_booking` int NOT NULL,
+  `kode_booking` varchar(20) NOT NULL,
+  `id_pelanggan` int NOT NULL,
+  `id_bus` int NOT NULL,
+  `id_kasir` int NOT NULL,
+  `tanggal_booking` datetime DEFAULT CURRENT_TIMESTAMP,
+  `tanggal_mulai` date NOT NULL,
+  `tanggal_selesai` date NOT NULL,
+  `tujuan` text NOT NULL,
+  `jumlah_penumpang` int NOT NULL,
+  `lama_sewa` int NOT NULL,
+  `total_harga` decimal(12,2) NOT NULL,
+  `status_booking` enum('pending','dikonfirmasi','selesai','dibatalkan') DEFAULT 'pending',
+  `catatan` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `tbl_booking`
+--
+
+INSERT INTO `tbl_booking` (`id_booking`, `kode_booking`, `id_pelanggan`, `id_bus`, `id_kasir`, `tanggal_booking`, `tanggal_mulai`, `tanggal_selesai`, `tujuan`, `jumlah_penumpang`, `lama_sewa`, `total_harga`, `status_booking`, `catatan`, `created_at`, `updated_at`) VALUES
+(1, 'BKG00001', 1, 1, 2, '2025-11-21 07:25:35', '2025-11-21', '2025-11-22', 'Jakarta', 20, 1, 1500000.00, 'selesai', 'awdawd', '2025-11-21 00:25:35', '2025-11-21 08:21:44'),
+(2, 'BKG00002', 2, 4, 1, '2025-11-21 08:40:50', '2025-11-21', '2025-11-22', 'Pacet', 15, 1, 800000.00, 'selesai', 'Test2', '2025-11-21 01:40:50', '2025-11-23 09:04:59'),
+(3, 'BKG00003', 1, 2, 1, '2025-11-22 15:31:50', '2025-11-22', '2025-11-23', 'Jayakarta', 100, 1, 2500000.00, 'dibatalkan', '', '2025-11-22 08:31:50', '2025-11-21 09:02:19'),
+(4, 'BKG00004', 1, 3, 1, '2025-11-21 16:03:30', '2025-11-21', '2025-11-22', 'Jakarta', 10, 1, 3500000.00, 'dibatalkan', '', '2025-11-21 09:03:30', '2025-11-23 09:04:59'),
+(5, 'BKG00005', 1, 2, 1, '2025-11-23 17:28:06', '2025-11-23', '2025-11-24', 'Majalengka', 10, 1, 2500000.00, 'selesai', 'TESTTTTT', '2025-11-23 10:28:06', '2025-11-25 10:30:51');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_bus`
+--
+
+CREATE TABLE `tbl_bus` (
+  `id_bus` int NOT NULL,
+  `no_polisi` varchar(20) NOT NULL,
+  `tipe_bus` varchar(50) NOT NULL,
+  `merk` varchar(50) DEFAULT NULL,
+  `kapasitas` int NOT NULL,
+  `fasilitas` text,
+  `harga_per_hari` decimal(12,2) NOT NULL,
+  `foto` varchar(255) DEFAULT NULL,
+  `status` enum('tersedia','disewa','maintenance') DEFAULT 'tersedia',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `tbl_bus`
+--
+
+INSERT INTO `tbl_bus` (`id_bus`, `no_polisi`, `tipe_bus`, `merk`, `kapasitas`, `fasilitas`, `harga_per_hari`, `foto`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'B 1234 ABC', 'Medium', 'Mercedes-Benz', 35, 'AC, TV, Audio System, Reclining Seat', 1500000.00, '', 'tersedia', '2025-11-21 00:22:18', '2025-11-23 10:27:14'),
+(2, 'B 5678 DEF', 'Big', 'Hino', 50, 'AC, TV, Karaoke, Toilet, Reclining Seat', 2500000.00, '', 'tersedia', '2025-11-21 00:22:18', '2025-11-25 10:30:52'),
+(3, 'B 9012 GHI', 'VIP', 'Scania', 30, 'AC, TV, Karaoke, Toilet, Full Reclining Seat, WiFi', 3500000.00, '', 'tersedia', '2025-11-21 00:22:18', '2025-11-23 09:47:00'),
+(4, 'B 3456 JKL', 'Mini', 'Isuzu Elf', 15, 'AC, Audio System', 800000.00, '', 'tersedia', '2025-11-21 00:22:18', '2025-11-23 10:27:00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_pelanggan`
+--
+
+CREATE TABLE `tbl_pelanggan` (
+  `id_pelanggan` int NOT NULL,
+  `nama_pelanggan` varchar(100) NOT NULL,
+  `no_telp` varchar(20) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `alamat` text,
+  `no_ktp` varchar(20) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `tbl_pelanggan`
+--
+
+INSERT INTO `tbl_pelanggan` (`id_pelanggan`, `nama_pelanggan`, `no_telp`, `email`, `alamat`, `no_ktp`, `created_at`, `updated_at`) VALUES
+(1, 'Ahmad Wijaya', '081234567891', 'ahmad@email.com', 'Jl. Sudirman No. 10, Jakarta', '3174012345670001', '2025-11-21 00:22:18', '2025-11-21 00:22:18'),
+(2, 'Siti Nurhaliza', '081234567892', 'siti@email.com', 'Jl. Gatot Subroto No. 25, Jakarta', '3174012345670002', '2025-11-21 00:22:18', '2025-11-21 00:22:18');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_pembayaran`
+--
+
+CREATE TABLE `tbl_pembayaran` (
+  `id_pembayaran` int NOT NULL,
+  `id_booking` int NOT NULL,
+  `tanggal_bayar` datetime DEFAULT CURRENT_TIMESTAMP,
+  `jumlah_bayar` decimal(12,2) NOT NULL,
+  `metode_bayar` enum('cash','transfer','ewallet') NOT NULL,
+  `bukti_transfer` varchar(255) DEFAULT NULL,
+  `status_bayar` enum('belum_bayar','dp','lunas') NOT NULL,
+  `keterangan` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `tbl_pembayaran`
+--
+
+INSERT INTO `tbl_pembayaran` (`id_pembayaran`, `id_booking`, `tanggal_bayar`, `jumlah_bayar`, `metode_bayar`, `bukti_transfer`, `status_bayar`, `keterangan`, `created_at`, `updated_at`) VALUES
+(1, 5, '2025-11-25 17:42:17', 25000000.00, 'cash', '', 'lunas', 'test', '2025-11-25 10:42:43', '2025-11-25 10:54:13'),
+(2, 2, '2025-11-25 18:03:56', 800000.00, 'cash', '', 'lunas', 'test', '2025-11-25 11:04:12', '2025-11-25 11:04:42'),
+(3, 1, '2025-11-25 18:37:05', 1500000.00, 'cash', '', 'lunas', 'testttttt', '2025-11-25 11:37:33', '2025-11-25 11:37:43');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_sopir`
+--
+
+CREATE TABLE `tbl_sopir` (
+  `id_sopir` int NOT NULL,
+  `id_user` int NOT NULL,
+  `no_sim` varchar(20) NOT NULL,
+  `jenis_sim` varchar(10) NOT NULL,
+  `masa_berlaku_sim` date NOT NULL,
+  `status_sopir` enum('aktif','nonaktif','cuti') DEFAULT 'aktif',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `tbl_sopir`
+--
+
+INSERT INTO `tbl_sopir` (`id_sopir`, `id_user`, `no_sim`, `jenis_sim`, `masa_berlaku_sim`, `status_sopir`, `created_at`, `updated_at`) VALUES
+(1, 3, 'SIM1234567890', 'A Umum', '2026-12-31', 'aktif', '2025-11-21 00:22:18', '2025-11-21 00:22:18'),
+(2, 4, 'SIM0987654321', 'A Umum', '2027-06-30', 'aktif', '2025-11-21 00:22:18', '2025-11-21 00:22:18');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_users`
+--
+
+CREATE TABLE `tbl_users` (
+  `id_user` int NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `nama_lengkap` varchar(100) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `no_telp` varchar(20) DEFAULT NULL,
+  `alamat` text,
+  `role` enum('admin','kasir','sopir') NOT NULL,
+  `status` enum('aktif','nonaktif') DEFAULT 'aktif',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `tbl_users`
+--
+
+INSERT INTO `tbl_users` (`id_user`, `username`, `password`, `nama_lengkap`, `email`, `no_telp`, `alamat`, `role`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'admin', 'admin123', 'Administrator', 'admin@buspariwisata.com', NULL, NULL, 'admin', 'aktif', '2025-11-21 00:22:18', '2025-11-21 00:22:18'),
+(2, 'kasir1', 'kasir123', 'Budi Santoso', 'budi@buspariwisata.com', '081234567890', NULL, 'kasir', 'aktif', '2025-11-21 00:22:18', '2025-11-21 00:22:18'),
+(3, 'sopir1', 'sopir123', 'Ahmad Sopir', 'ahmad.sopir@buspariwisata.com', '081234567893', 'Jl. Raya Jakarta No. 15', 'sopir', 'aktif', '2025-11-21 00:22:18', '2025-11-21 00:22:18'),
+(4, 'sopir2', 'sopir123', 'Bambang Driver', 'bambang@buspariwisata.com', '081234567894', 'Jl. Sudirman No. 20', 'sopir', 'aktif', '2025-11-21 00:22:18', '2025-11-21 00:22:18');
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `view_dashboard_stats`
+-- (See below for the actual view)
+--
+CREATE TABLE `view_dashboard_stats` (
+`total_booking_aktif` bigint
+,`total_bus_tersedia` bigint
+,`total_bus_disewa` bigint
+,`pendapatan_bulan_ini` decimal(34,2)
+,`pendapatan_hari_ini` decimal(34,2)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `view_laporan_transaksi`
+-- (See below for the actual view)
+--
+CREATE TABLE `view_laporan_transaksi` (
+`kode_booking` varchar(20)
+,`tanggal_booking` datetime
+,`nama_pelanggan` varchar(100)
+,`no_telp` varchar(20)
+,`no_polisi` varchar(20)
+,`tipe_bus` varchar(50)
+,`tanggal_mulai` date
+,`tanggal_selesai` date
+,`lama_sewa` int
+,`total_harga` decimal(12,2)
+,`status_booking` enum('pending','dikonfirmasi','selesai','dibatalkan')
+,`status_bayar` enum('belum_bayar','dp','lunas')
+,`jumlah_dibayar` decimal(12,2)
+,`nama_kasir` varchar(100)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `view_sopir_order_pendapatan`
+-- (See below for the actual view)
+--
+CREATE TABLE `view_sopir_order_pendapatan` (
+`id_assignment` int
+,`id_booking` int
+,`id_sopir` int
+,`kode_booking` varchar(20)
+,`tanggal_mulai` date
+,`tanggal_selesai` date
+,`tujuan` text
+,`status_booking` enum('pending','dikonfirmasi','selesai','dibatalkan')
+,`nama_pelanggan` varchar(100)
+,`no_polisi` varchar(20)
+,`nama_sopir` varchar(100)
+,`fee_sopir` decimal(12,2)
+,`status_bayar` enum('belum_bayar','dibayar')
+,`tanggal_bayar` date
+,`keterangan` text
+);
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `view_dashboard_stats`
+--
+DROP TABLE IF EXISTS `view_dashboard_stats`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_dashboard_stats`  AS SELECT (select count(0) from `tbl_booking` where (`tbl_booking`.`status_booking` = 'dikonfirmasi')) AS `total_booking_aktif`, (select count(0) from `tbl_bus` where (`tbl_bus`.`status` = 'tersedia')) AS `total_bus_tersedia`, (select count(0) from `tbl_bus` where (`tbl_bus`.`status` = 'disewa')) AS `total_bus_disewa`, (select coalesce(sum(`tbl_booking`.`total_harga`),0) from `tbl_booking` where ((month(`tbl_booking`.`tanggal_booking`) = month(curdate())) and (year(`tbl_booking`.`tanggal_booking`) = year(curdate())))) AS `pendapatan_bulan_ini`, (select coalesce(sum(`tbl_booking`.`total_harga`),0) from `tbl_booking` where (cast(`tbl_booking`.`tanggal_booking` as date) = curdate())) AS `pendapatan_hari_ini` ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `view_laporan_transaksi`
+--
+DROP TABLE IF EXISTS `view_laporan_transaksi`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_laporan_transaksi`  AS SELECT `b`.`kode_booking` AS `kode_booking`, `b`.`tanggal_booking` AS `tanggal_booking`, `p`.`nama_pelanggan` AS `nama_pelanggan`, `p`.`no_telp` AS `no_telp`, `bus`.`no_polisi` AS `no_polisi`, `bus`.`tipe_bus` AS `tipe_bus`, `b`.`tanggal_mulai` AS `tanggal_mulai`, `b`.`tanggal_selesai` AS `tanggal_selesai`, `b`.`lama_sewa` AS `lama_sewa`, `b`.`total_harga` AS `total_harga`, `b`.`status_booking` AS `status_booking`, `pby`.`status_bayar` AS `status_bayar`, coalesce(`pby`.`jumlah_bayar`,0) AS `jumlah_dibayar`, `u`.`nama_lengkap` AS `nama_kasir` FROM ((((`tbl_booking` `b` join `tbl_pelanggan` `p` on((`b`.`id_pelanggan` = `p`.`id_pelanggan`))) join `tbl_bus` `bus` on((`b`.`id_bus` = `bus`.`id_bus`))) join `tbl_users` `u` on((`b`.`id_kasir` = `u`.`id_user`))) left join `tbl_pembayaran` `pby` on((`b`.`id_booking` = `pby`.`id_booking`))) ORDER BY `b`.`tanggal_booking` DESC ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `view_sopir_order_pendapatan`
+--
+DROP TABLE IF EXISTS `view_sopir_order_pendapatan`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_sopir_order_pendapatan`  AS SELECT `a`.`id_assignment` AS `id_assignment`, `a`.`id_booking` AS `id_booking`, `a`.`id_sopir` AS `id_sopir`, `b`.`kode_booking` AS `kode_booking`, `b`.`tanggal_mulai` AS `tanggal_mulai`, `b`.`tanggal_selesai` AS `tanggal_selesai`, `b`.`tujuan` AS `tujuan`, `b`.`status_booking` AS `status_booking`, `p`.`nama_pelanggan` AS `nama_pelanggan`, `bus`.`no_polisi` AS `no_polisi`, `u_sopir`.`nama_lengkap` AS `nama_sopir`, `a`.`fee_sopir` AS `fee_sopir`, `a`.`status_bayar` AS `status_bayar`, `a`.`tanggal_bayar` AS `tanggal_bayar`, `a`.`keterangan` AS `keterangan` FROM (((((`tbl_assignment_sopir` `a` join `tbl_booking` `b` on((`a`.`id_booking` = `b`.`id_booking`))) join `tbl_pelanggan` `p` on((`b`.`id_pelanggan` = `p`.`id_pelanggan`))) join `tbl_bus` `bus` on((`b`.`id_bus` = `bus`.`id_bus`))) join `tbl_sopir` `s` on((`a`.`id_sopir` = `s`.`id_sopir`))) join `tbl_users` `u_sopir` on((`s`.`id_user` = `u_sopir`.`id_user`))) ;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `tbl_assignment_sopir`
+--
+ALTER TABLE `tbl_assignment_sopir`
+  ADD PRIMARY KEY (`id_assignment`),
+  ADD KEY `id_booking` (`id_booking`),
+  ADD KEY `id_sopir` (`id_sopir`);
+
+--
+-- Indexes for table `tbl_booking`
+--
+ALTER TABLE `tbl_booking`
+  ADD PRIMARY KEY (`id_booking`),
+  ADD UNIQUE KEY `kode_booking` (`kode_booking`),
+  ADD KEY `id_pelanggan` (`id_pelanggan`),
+  ADD KEY `id_bus` (`id_bus`),
+  ADD KEY `id_kasir` (`id_kasir`);
+
+--
+-- Indexes for table `tbl_bus`
+--
+ALTER TABLE `tbl_bus`
+  ADD PRIMARY KEY (`id_bus`),
+  ADD UNIQUE KEY `no_polisi` (`no_polisi`);
+
+--
+-- Indexes for table `tbl_pelanggan`
+--
+ALTER TABLE `tbl_pelanggan`
+  ADD PRIMARY KEY (`id_pelanggan`);
+
+--
+-- Indexes for table `tbl_pembayaran`
+--
+ALTER TABLE `tbl_pembayaran`
+  ADD PRIMARY KEY (`id_pembayaran`),
+  ADD KEY `id_booking` (`id_booking`);
+
+--
+-- Indexes for table `tbl_sopir`
+--
+ALTER TABLE `tbl_sopir`
+  ADD PRIMARY KEY (`id_sopir`),
+  ADD KEY `id_user` (`id_user`);
+
+--
+-- Indexes for table `tbl_users`
+--
+ALTER TABLE `tbl_users`
+  ADD PRIMARY KEY (`id_user`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `tbl_assignment_sopir`
+--
+ALTER TABLE `tbl_assignment_sopir`
+  MODIFY `id_assignment` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `tbl_booking`
+--
+ALTER TABLE `tbl_booking`
+  MODIFY `id_booking` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `tbl_bus`
+--
+ALTER TABLE `tbl_bus`
+  MODIFY `id_bus` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `tbl_pelanggan`
+--
+ALTER TABLE `tbl_pelanggan`
+  MODIFY `id_pelanggan` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `tbl_pembayaran`
+--
+ALTER TABLE `tbl_pembayaran`
+  MODIFY `id_pembayaran` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `tbl_sopir`
+--
+ALTER TABLE `tbl_sopir`
+  MODIFY `id_sopir` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `tbl_users`
+--
+ALTER TABLE `tbl_users`
+  MODIFY `id_user` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `tbl_assignment_sopir`
+--
+ALTER TABLE `tbl_assignment_sopir`
+  ADD CONSTRAINT `tbl_assignment_sopir_ibfk_1` FOREIGN KEY (`id_booking`) REFERENCES `tbl_booking` (`id_booking`) ON DELETE CASCADE,
+  ADD CONSTRAINT `tbl_assignment_sopir_ibfk_2` FOREIGN KEY (`id_sopir`) REFERENCES `tbl_sopir` (`id_sopir`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `tbl_booking`
+--
+ALTER TABLE `tbl_booking`
+  ADD CONSTRAINT `tbl_booking_ibfk_1` FOREIGN KEY (`id_pelanggan`) REFERENCES `tbl_pelanggan` (`id_pelanggan`),
+  ADD CONSTRAINT `tbl_booking_ibfk_2` FOREIGN KEY (`id_bus`) REFERENCES `tbl_bus` (`id_bus`),
+  ADD CONSTRAINT `tbl_booking_ibfk_3` FOREIGN KEY (`id_kasir`) REFERENCES `tbl_users` (`id_user`);
+
+--
+-- Constraints for table `tbl_pembayaran`
+--
+ALTER TABLE `tbl_pembayaran`
+  ADD CONSTRAINT `tbl_pembayaran_ibfk_1` FOREIGN KEY (`id_booking`) REFERENCES `tbl_booking` (`id_booking`);
+
+--
+-- Constraints for table `tbl_sopir`
+--
+ALTER TABLE `tbl_sopir`
+  ADD CONSTRAINT `tbl_sopir_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `tbl_users` (`id_user`) ON DELETE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
