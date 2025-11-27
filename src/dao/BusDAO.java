@@ -6,12 +6,12 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Date; // ✅ java.util.Date
+import java.util.Date;
 
 public class BusDAO {
     
     public boolean tambahBus(Bus bus) {
-        String sql = "INSERT INTO tbl_bus (no_polisi, tipe_bus, merk, kapasitas, fasilitas, harga_per_hari, foto, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO tbl_bus (no_polisi, tipe_bus, merk, kapasitas, fasilitas, harga_per_hari, foto, status, tahun_pembuatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
@@ -23,6 +23,7 @@ public class BusDAO {
             stmt.setDouble(6, bus.getHargaPerHari());
             stmt.setString(7, bus.getFoto());
             stmt.setString(8, bus.getStatus());
+            stmt.setInt(9, bus.getTahunPembuatan());
             
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -32,7 +33,7 @@ public class BusDAO {
     }
     
     public boolean updateBus(Bus bus) {
-        String sql = "UPDATE tbl_bus SET no_polisi = ?, tipe_bus = ?, merk = ?, kapasitas = ?, fasilitas = ?, harga_per_hari = ?, foto = ?, status = ? WHERE id_bus = ?";
+        String sql = "UPDATE tbl_bus SET no_polisi = ?, tipe_bus = ?, merk = ?, kapasitas = ?, fasilitas = ?, harga_per_hari = ?, foto = ?, status = ?, tahun_pembuatan = ? WHERE id_bus = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
@@ -44,7 +45,8 @@ public class BusDAO {
             stmt.setDouble(6, bus.getHargaPerHari());
             stmt.setString(7, bus.getFoto());
             stmt.setString(8, bus.getStatus());
-            stmt.setInt(9, bus.getIdBus());
+            stmt.setInt(9, bus.getTahunPembuatan());
+            stmt.setInt(10, bus.getIdBus());
             
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -63,6 +65,15 @@ public class BusDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+    
+    private int getSafeInt(ResultSet rs, String column) {
+        try {
+            int val = rs.getInt(column);
+            return rs.wasNull() ? 0 : val;
+        } catch (SQLException e) {
+            return 0;
         }
     }
     
@@ -85,6 +96,7 @@ public class BusDAO {
                 bus.setHargaPerHari(rs.getDouble("harga_per_hari"));
                 bus.setFoto(rs.getString("foto"));
                 bus.setStatus(rs.getString("status"));
+                bus.setTahunPembuatan(getSafeInt(rs, "tahun_pembuatan"));
                 busList.add(bus);
             }
         } catch (SQLException e) {
@@ -112,6 +124,7 @@ public class BusDAO {
                 bus.setHargaPerHari(rs.getDouble("harga_per_hari"));
                 bus.setFoto(rs.getString("foto"));
                 bus.setStatus(rs.getString("status"));
+                bus.setTahunPembuatan(getSafeInt(rs, "tahun_pembuatan"));
                 busList.add(bus);
             }
         } catch (SQLException e) {
@@ -139,6 +152,7 @@ public class BusDAO {
                 bus.setHargaPerHari(rs.getDouble("harga_per_hari"));
                 bus.setFoto(rs.getString("foto"));
                 bus.setStatus(rs.getString("status"));
+                bus.setTahunPembuatan(getSafeInt(rs, "tahun_pembuatan"));
                 return bus;
             }
         } catch (SQLException e) {
@@ -203,6 +217,7 @@ public class BusDAO {
                 bus.setHargaPerHari(rs.getDouble("harga_per_hari"));
                 bus.setFoto(rs.getString("foto"));
                 bus.setStatus(rs.getString("status"));
+                bus.setTahunPembuatan(getSafeInt(rs, "tahun_pembuatan"));
                 busList.add(bus);
             }
         } catch (SQLException e) {
@@ -231,6 +246,7 @@ public class BusDAO {
                     bus.setHargaPerHari(rs.getDouble("harga_per_hari"));
                     bus.setFoto(rs.getString("foto"));
                     bus.setStatus(rs.getString("status"));
+                    bus.setTahunPembuatan(getSafeInt(rs, "tahun_pembuatan"));
                     return bus;
                 }
             }
@@ -280,9 +296,6 @@ public class BusDAO {
         return bookedDates;
     }
 
-    /**
-     * Mengecek ketersediaan bus (versi untuk UPDATE - bisa exclude booking tertentu)
-     */
     public boolean isBusAvailable(int idBus, Date tanggalMulai, Date tanggalSelesai, Integer excludeBookingId) {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) as total FROM tbl_booking " +
@@ -320,9 +333,6 @@ public class BusDAO {
         return false;
     }
 
-    /**
-     * Mengecek ketersediaan bus (versi untuk CREATE - tidak exclude apa-apa)
-     */
     public boolean isBusAvailable(int idBus, Date tanggalMulai, Date tanggalSelesai) {
         return isBusAvailable(idBus, tanggalMulai, tanggalSelesai, null);
     }

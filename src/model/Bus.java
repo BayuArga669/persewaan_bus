@@ -10,6 +10,7 @@ public class Bus {
     private double hargaPerHari;
     private String foto;
     private String status;
+    private int tahunPembuatan; // ✅ Field baru
     
     // Constructor
     public Bus() {}
@@ -94,5 +95,14 @@ public class Bus {
     
     public void setStatus(String status) {
         this.status = status;
+    }
+    
+    // ✅ Getter dan Setter untuk tahun pembuatan
+    public int getTahunPembuatan() {
+        return tahunPembuatan;
+    }
+    
+    public void setTahunPembuatan(int tahunPembuatan) {
+        this.tahunPembuatan = tahunPembuatan;
     }
 }
