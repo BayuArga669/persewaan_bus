@@ -2,6 +2,7 @@ package dao;
 
 import config.DatabaseConfig;
 import model.AssignmentSopir;
+import model.Booking;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,15 +10,13 @@ import java.util.List;
 public class AssignmentSopirDAO {
     
     public boolean tambahAssignment(AssignmentSopir assignment) {
-        String sql = "INSERT INTO tbl_assignment_sopir (id_booking, id_sopir, fee_sopir, status_bayar, keterangan) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO tbl_assignment_sopir (id_booking, id_sopir, keterangan) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, assignment.getIdBooking());
             stmt.setInt(2, assignment.getIdSopir());
-            stmt.setDouble(3, assignment.getFeeSopir());
-            stmt.setString(4, assignment.getStatusBayar());
-            stmt.setString(5, assignment.getKeterangan());
+            stmt.setString(3, assignment.getKeterangan());
             
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -27,36 +26,13 @@ public class AssignmentSopirDAO {
     }
     
     public boolean updateAssignment(AssignmentSopir assignment) {
-        String sql = "UPDATE tbl_assignment_sopir SET id_sopir = ?, fee_sopir = ?, status_bayar = ?, tanggal_bayar = ?, keterangan = ? WHERE id_assignment = ?";
+        String sql = "UPDATE tbl_assignment_sopir SET id_sopir = ?, keterangan = ? WHERE id_assignment = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, assignment.getIdSopir());
-            stmt.setDouble(2, assignment.getFeeSopir());
-            stmt.setString(3, assignment.getStatusBayar());
-            if (assignment.getTanggalBayar() != null) {
-                stmt.setDate(4, new java.sql.Date(assignment.getTanggalBayar().getTime()));
-            } else {
-                stmt.setNull(4, Types.DATE);
-            }
-            stmt.setString(5, assignment.getKeterangan());
-            stmt.setInt(6, assignment.getIdAssignment());
-            
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-    
-    public boolean updateStatusBayar(int idAssignment, String statusBayar, Date tanggalBayar) {
-        String sql = "UPDATE tbl_assignment_sopir SET status_bayar = ?, tanggal_bayar = ? WHERE id_assignment = ?";
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setString(1, statusBayar);
-            stmt.setDate(2, new java.sql.Date(tanggalBayar.getTime()));
-            stmt.setInt(3, idAssignment);
+            stmt.setString(2, assignment.getKeterangan());
+            stmt.setInt(3, assignment.getIdAssignment());
             
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -85,26 +61,6 @@ public class AssignmentSopirDAO {
         try (Connection conn = DatabaseConfig.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                AssignmentSopir assignment = mapResultSetToAssignment(rs);
-                assignments.add(assignment);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return assignments;
-    }
-    
-    public List<AssignmentSopir> getAssignmentsBySopir(int idSopir) {
-        List<AssignmentSopir> assignments = new ArrayList<>();
-        String sql = "SELECT * FROM view_sopir_order_pendapatan WHERE id_sopir = ?";
-        
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setInt(1, idSopir);
-            ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
                 AssignmentSopir assignment = mapResultSetToAssignment(rs);
@@ -150,31 +106,29 @@ public class AssignmentSopirDAO {
         return null;
     }
     
-    public double getTotalPendapatanSopir(int idSopir, String statusBayar) {
-        String sql = "SELECT COALESCE(SUM(fee_sopir), 0) as total FROM tbl_assignment_sopir WHERE id_sopir = ?";
-        if (statusBayar != null && !statusBayar.isEmpty()) {
-            sql += " AND status_bayar = ?";
-        }
+    // 🔹 METODE BARU: Cek apakah sopir sedang bertugas (belum selesai/dibatalkan)
+    public boolean isSopirSedangBertugas(int idSopir) {
+        String sql = "SELECT COUNT(*) AS total " +
+                     "FROM view_sopir_order_pendapatan " +
+                     "WHERE id_sopir = ? " +
+                     "  AND status_booking NOT IN ('selesai', 'dibatalkan')";
         
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, idSopir);
-            if (statusBayar != null && !statusBayar.isEmpty()) {
-                stmt.setString(2, statusBayar);
-            }
-            
             ResultSet rs = stmt.executeQuery();
+            
             if (rs.next()) {
-                return rs.getDouble("total");
+                return rs.getInt("total") > 0;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return 0;
+        return false;
     }
-    
-    // Cek apakah sopir sedang dalam perjalanan (booking belum selesai)
+
+    // Cek ketersediaan sopir berdasarkan bentrok tanggal
     public boolean isSopirAvailable(int idSopir, Date tanggalMulai, Date tanggalSelesai) {
         String sql = "SELECT COUNT(*) as total FROM tbl_assignment_sopir a " +
                      "JOIN tbl_booking b ON a.id_booking = b.id_booking " +
@@ -200,7 +154,7 @@ public class AssignmentSopirDAO {
             
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getInt("total") == 0; // true jika tidak ada booking bentrok
+                return rs.getInt("total") == 0;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -208,7 +162,6 @@ public class AssignmentSopirDAO {
         return false;
     }
     
-    // Get booking info by booking ID (untuk validasi)
     public java.sql.Date[] getBookingDates(int idBooking) {
         String sql = "SELECT tanggal_mulai, tanggal_selesai FROM tbl_booking WHERE id_booking = ?";
         try (Connection conn = DatabaseConfig.getConnection();
@@ -242,9 +195,6 @@ public class AssignmentSopirDAO {
         assignment.setNamaPelanggan(rs.getString("nama_pelanggan"));
         assignment.setNoPolisi(rs.getString("no_polisi"));
         assignment.setNamaSopir(rs.getString("nama_sopir"));
-        assignment.setFeeSopir(rs.getDouble("fee_sopir"));
-        assignment.setStatusBayar(rs.getString("status_bayar"));
-        assignment.setTanggalBayar(rs.getDate("tanggal_bayar"));
         assignment.setKeterangan(rs.getString("keterangan"));
         return assignment;
     }

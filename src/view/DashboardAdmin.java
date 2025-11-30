@@ -70,22 +70,9 @@ public class DashboardAdmin extends JFrame {
         // Main Content
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(LIGHT);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
-        
-        JLabel titleLabel = new JLabel("DASHBOARD ADMIN");
-        titleLabel.setFont(titleFont);
-        titleLabel.setForeground(DARK);
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
-        JLabel subtitleLabel = new JLabel("Kelola sistem penyewaan bus secara efisien");
-        subtitleLabel.setFont(subtitleFont);
-        subtitleLabel.setForeground(GRAY);
-        subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
-        JPanel titlePanel = new JPanel(new GridLayout(2, 1, 0, 10));
-        titlePanel.setOpaque(false);
-        titlePanel.add(titleLabel);
-        titlePanel.add(subtitleLabel);
+//        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+//        JPanel titlePanel = new JPanel(new GridLayout(2, 1, 0, 10));
+//        titlePanel.setOpaque(false);
         
         // Statistik Panel
         JPanel statsPanel = createStatsPanel();
@@ -97,7 +84,7 @@ public class DashboardAdmin extends JFrame {
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(LIGHT);
         centerPanel.add(Box.createVerticalGlue());
-        centerPanel.add(titlePanel);
+//        centerPanel.add(titlePanel);
         centerPanel.add(Box.createRigidArea(new Dimension(0, 30)));
         centerPanel.add(statsPanel);
         centerPanel.add(Box.createRigidArea(new Dimension(0, 40)));
@@ -309,6 +296,7 @@ public class DashboardAdmin extends JFrame {
             {"Kelola Booking", "📅", SUCCESS, (ActionListener) e -> openManageBooking()},
             {"Kelola Pelanggan", "👨", WARNING, (ActionListener) e -> openManagePelanggan()},
             {"Assignment Sopir", "🚕", SECONDARY, (ActionListener) e -> openManageSopir()},
+            {"Biaya Operasional", "💰", new Color(230, 126, 34), (ActionListener) e -> openBiayaOperasional()},
             {"Laporan Keuangan", "📊", new Color(26, 188, 156), (ActionListener) e -> openLaporan()},
             {"Logout", "🚪", DANGER, (ActionListener) e -> logout()}
         };
@@ -426,6 +414,11 @@ public class DashboardAdmin extends JFrame {
             case "Logout": return "Keluar dari sistem";
             default: return "";
         }
+    }
+
+    private ActionListener openBiayaOperasional() {
+        SwingUtilities.invokeLater(() -> new FormBiayaOperasional().setVisible(true));
+        return null;
     }
 
     private static class WrapLayout extends FlowLayout {

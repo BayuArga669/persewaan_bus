@@ -152,5 +152,21 @@ public class UserDAO {
         }
     }
 
-
+    // 🔹 METODE BARU: Ambil ID User berdasarkan Username
+    public int getUserIdByUsername(String username) {
+        String sql = "SELECT id_user FROM tbl_users WHERE username = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("id_user");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
 }

@@ -48,22 +48,22 @@ public class DashboardKasir extends JFrame {
         // Main Content
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(LIGHT);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(40, 30, 40, 30));
+//        contentPanel.setBorder(BorderFactory.createEmptyBorder(40, 30, 40, 30));
+//        
+//        JLabel titleLabel = new JLabel("DASHBOARD KASIR");
+//        titleLabel.setFont(titleFont);
+//        titleLabel.setForeground(DARK);
+//        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+//        
+//        JLabel subtitleLabel = new JLabel("Kelola pemesanan & pembayaran bus pelanggan");
+//        subtitleLabel.setFont(subtitleFont);
+//        subtitleLabel.setForeground(GRAY);
+//        subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
-        JLabel titleLabel = new JLabel("DASHBOARD KASIR");
-        titleLabel.setFont(titleFont);
-        titleLabel.setForeground(DARK);
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
-        JLabel subtitleLabel = new JLabel("Kelola pemesanan & pembayaran bus pelanggan");
-        subtitleLabel.setFont(subtitleFont);
-        subtitleLabel.setForeground(GRAY);
-        subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
-        JPanel titlePanel = new JPanel(new GridLayout(2, 1, 0, 10));
-        titlePanel.setOpaque(false);
-        titlePanel.add(titleLabel);
-        titlePanel.add(subtitleLabel);
+//        JPanel titlePanel = new JPanel(new GridLayout(2, 1, 0, 10));
+//        titlePanel.setOpaque(false);
+//        titlePanel.add(titleLabel);
+//        titlePanel.add(subtitleLabel);
         
         // Menu Panel
         JPanel cardPanel = createCardPanel();
@@ -72,7 +72,7 @@ public class DashboardKasir extends JFrame {
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(LIGHT);
         centerPanel.add(Box.createVerticalGlue());
-        centerPanel.add(titlePanel);
+//        centerPanel.add(titlePanel);
         centerPanel.add(Box.createRigidArea(new Dimension(0, 50)));
         centerPanel.add(cardPanel);
         centerPanel.add(Box.createVerticalGlue());
@@ -158,7 +158,7 @@ public class DashboardKasir extends JFrame {
             {"Kelola Pembayaran", "💰", DARK_BLUE, (ActionListener) e -> kelolaPembayaran()},
             {"Lihat Daftar Bus", "🚌", INFO, (ActionListener) e -> lihatBus()},
             {"Kelola Pelanggan", "👨", WARNING, (ActionListener) e -> managePelanggan()},
-            {"Riwayat Transaksi", "📊", PURPLE, (ActionListener) e -> riwayatTransaksi()},
+//            {"Riwayat Transaksi", "📊", PURPLE, (ActionListener) e -> riwayatTransaksi()},
             {"Logout", "🚪", DANGER, (ActionListener) e -> logout()}
         };
 

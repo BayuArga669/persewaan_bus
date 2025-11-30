@@ -365,7 +365,7 @@ public class FormLogin extends JFrame {
                 } else if ("kasir".equals(user.getRole())) {
                     new DashboardKasir().setVisible(true);
                 } else if ("sopir".equals(user.getRole())) {
-                    new DashboardSopir().setVisible(true);
+//                    new DashboardSopir().setVisible(true);
                 }
                 ((Timer)e.getSource()).stop();
             });

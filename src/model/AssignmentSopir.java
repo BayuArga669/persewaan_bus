@@ -6,9 +6,6 @@ public class AssignmentSopir {
     private int idAssignment;
     private int idBooking;
     private int idSopir;
-    private double feeSopir;
-    private String statusBayar;
-    private Date tanggalBayar;
     private String keterangan;
     
     // Additional fields for display
@@ -47,30 +44,6 @@ public class AssignmentSopir {
     
     public void setIdSopir(int idSopir) {
         this.idSopir = idSopir;
-    }
-    
-    public double getFeeSopir() {
-        return feeSopir;
-    }
-    
-    public void setFeeSopir(double feeSopir) {
-        this.feeSopir = feeSopir;
-    }
-    
-    public String getStatusBayar() {
-        return statusBayar;
-    }
-    
-    public void setStatusBayar(String statusBayar) {
-        this.statusBayar = statusBayar;
-    }
-    
-    public Date getTanggalBayar() {
-        return tanggalBayar;
-    }
-    
-    public void setTanggalBayar(Date tanggalBayar) {
-        this.tanggalBayar = tanggalBayar;
     }
     
     public String getKeterangan() {
@@ -144,4 +117,6 @@ public class AssignmentSopir {
     public void setStatusBooking(String statusBooking) {
         this.statusBooking = statusBooking;
     }
+    
+    
 }
