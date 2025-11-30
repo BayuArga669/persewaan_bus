@@ -142,7 +142,7 @@ public class FormLaporan extends JFrame {
         
         // PENGELUARAN Section
         addSectionHeader(panel, gbc, row++, "PENGELUARAN", new Color(231, 76, 60));
-        lblTotalBiayaSopir = addDataRow(panel, gbc, row++, "Total Biaya Sopir:", "Rp 0");
+        lblTotalBiayaSopir = addDataRow(panel, gbc, row++, "Total Biaya Operasional:", "Rp 0");
         lblBiayaSopirBayar = addDataRow(panel, gbc, row++, "  • Sudah Dibayar:", "Rp 0");
         lblBiayaSopirBelum = addDataRow(panel, gbc, row++, "  • Belum Dibayar:", "Rp 0");
         row++; // Spacer

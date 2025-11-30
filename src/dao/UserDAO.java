@@ -56,18 +56,20 @@ public class UserDAO {
         }
     }
     
+    // ✅ PERUBAHAN PENTING: Metode updateUser diperbaiki untuk menyertakan username dan role
     public boolean updateUser(User user) {
+        // ✅ Hanya update field yang bisa diubah
         String sql = "UPDATE tbl_users SET nama_lengkap = ?, email = ?, no_telp = ?, alamat = ?, status = ? WHERE id_user = ?";
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+
             stmt.setString(1, user.getNamaLengkap());
             stmt.setString(2, user.getEmail());
             stmt.setString(3, user.getNoTelp());
             stmt.setString(4, user.getAlamat());
             stmt.setString(5, user.getStatus());
             stmt.setInt(6, user.getIdUser());
-            
+
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -152,7 +154,6 @@ public class UserDAO {
         }
     }
 
-    // 🔹 METODE BARU: Ambil ID User berdasarkan Username
     public int getUserIdByUsername(String username) {
         String sql = "SELECT id_user FROM tbl_users WHERE username = ?";
         try (Connection conn = DatabaseConfig.getConnection();

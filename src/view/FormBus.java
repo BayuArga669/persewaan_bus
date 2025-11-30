@@ -166,12 +166,12 @@ public class FormBus extends JFrame {
         gbc.gridx = 0; gbc.gridy = 1;
         panel.add(createLabeledField("Merk:", txtMerk = new JTextField(15)), gbc);
         gbc.gridx = 1;
-        panel.add(createLabeledField("Tahun Pembuatan:", txtTahunPembuatan = new JTextField(15)), gbc);
+        panel.add(createLabeledField("Tahun Pembuatan:", txtTahunPembuatan = createNumericField()), gbc);
 
         gbc.gridx = 0; gbc.gridy = 2;
-        panel.add(createLabeledField("Kapasitas:", txtKapasitas = new JTextField(15)), gbc);
+        panel.add(createLabeledField("Kapasitas:", txtKapasitas = createNumericField()), gbc);
         gbc.gridx = 1;
-        panel.add(createLabeledField("Harga/Hari:", txtHarga = new JTextField(15)), gbc);
+        panel.add(createLabeledField("Harga/Hari:", txtHarga = createNumericField()), gbc);
 
         gbc.gridx = 0; gbc.gridy = 3;
         panel.add(createLabeledField("Status:", cmbStatus = new JComboBox<>(new String[]{"tersedia", "disewa", "maintenance"})), gbc);
@@ -238,17 +238,45 @@ public class FormBus extends JFrame {
     }
 
     private JPanel createLabeledField(String label, JComponent field) {
-        JPanel panel = new JPanel(new BorderLayout(4, 4)); // ⬇️ Kurangi margin
+        JPanel panel = new JPanel(new BorderLayout(4, 4));
         panel.add(new JLabel(label), BorderLayout.WEST);
-        if (field instanceof JTextField) {
-            ((JTextField) field).setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            ((JTextField) field).setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200)),
-                BorderFactory.createEmptyBorder(4, 8, 4, 8)
-            ));
-        }
         panel.add(field, BorderLayout.CENTER);
         return panel;
+    }
+
+    // ✅ METODE BARU: Membuat field yang hanya menerima input numerik
+    private JTextField createNumericField() {
+        JTextField field = new JTextField() {
+            @Override
+            protected void processKeyEvent(KeyEvent e) {
+                // Mengizinkan angka, backspace, delete, tab, enter, arrow keys
+                if (Character.isDigit(e.getKeyChar()) || 
+                    e.getKeyCode() == KeyEvent.VK_BACK_SPACE || 
+                    e.getKeyCode() == KeyEvent.VK_DELETE ||
+                    e.getKeyCode() == KeyEvent.VK_TAB ||
+                    e.getKeyCode() == KeyEvent.VK_ENTER ||
+                    e.getKeyCode() == KeyEvent.VK_LEFT ||
+                    e.getKeyCode() == KeyEvent.VK_RIGHT ||
+                    e.getKeyCode() == KeyEvent.VK_HOME ||
+                    e.getKeyCode() == KeyEvent.VK_END ||
+                    e.isControlDown() && (e.getKeyCode() == KeyEvent.VK_C || 
+                                         e.getKeyCode() == KeyEvent.VK_V || 
+                                         e.getKeyCode() == KeyEvent.VK_X)) {
+                    super.processKeyEvent(e);
+                } else {
+                    // Mencegah input karakter non-angka
+                    e.consume();
+                    Toolkit.getDefaultToolkit().beep(); // Opsional: Bunyi peringatan
+                }
+            }
+        };
+        
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(4, 8, 4, 8)
+        ));
+        return field;
     }
 
     private JPanel createTablePanel() {
@@ -277,6 +305,7 @@ public class FormBus extends JFrame {
         tableBus.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
         tableBus.getTableHeader().setBackground(new Color(52, 152, 219));
         tableBus.getTableHeader().setForeground(Color.WHITE);
+        tableBus.getTableHeader().setPreferredSize(new Dimension(0, 36));
         tableBus.setGridColor(new Color(230, 230, 230));
 
         tableBus.getColumnModel().getColumn(0).setPreferredWidth(110);
@@ -290,12 +319,15 @@ public class FormBus extends JFrame {
         tableBus.getColumnModel().getColumn(5).setCellRenderer(new StatusCellRenderer());
 
         JScrollPane scrollTable = new JScrollPane(tableBus);
-        scrollTable.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+        scrollTable.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220)), 
+            "📊 Daftar Bus"
+        ));
 
-        tableBus.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (isAdmin) selectRow();
+        // ✅ PERUBAHAN: Menggunakan ListSelectionListener untuk pemilihan baris
+        tableBus.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && isAdmin) {
+                selectRow();
             }
         });
 

@@ -5,6 +5,7 @@ import model.*;
 import util.SessionManager;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.NumberFormat;
@@ -135,6 +136,12 @@ public class FormBiayaOperasional extends JFrame {
         gbc.gridy = ++row;
         txtJumlah = new JTextField();
         txtJumlah.setPreferredSize(new Dimension(0, 35));
+        
+        // --- MODIFIKASI DIMULAI DI SINI ---
+        // Terapkan filter agar hanya bisa input angka
+        ((PlainDocument) txtJumlah.getDocument()).setDocumentFilter(new NumberOnlyDocumentFilter());
+        // --- MODIFIKASI SELESAI DI SINI ---
+        
         formPanel.add(txtJumlah, gbc);
         
         // Status Bayar
@@ -586,5 +593,48 @@ public class FormBiayaOperasional extends JFrame {
         }
         
         return true;
+    }
+    
+    // --- KELAS FILTER UNTUK INPUT ANGKA ---
+    /**
+     * DocumentFilter untuk membatasi input hanya pada karakter numerik (angka dan satu titik desimal).
+     */
+    private class NumberOnlyDocumentFilter extends DocumentFilter {
+        @Override
+        public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr) throws BadLocationException {
+            if (isValidText(fb.getDocument(), offset, text)) {
+                super.insertString(fb, offset, text, attr);
+            }
+        }
+
+        @Override
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attr) throws BadLocationException {
+            if (isValidText(fb.getDocument(), offset, text)) {
+                super.replace(fb, offset, length, text, attr);
+            }
+        }
+
+        /**
+         * Memeriksa apakah teks yang akan dimasukkan menghasilkan string angka yang valid.
+         */
+        private boolean isValidText(Document doc, int offset, String text) throws BadLocationException {
+            String currentText = doc.getText(0, doc.getLength());
+            // Simulasi perubahan teks
+            String newText = currentText.substring(0, offset) + text + currentText.substring(offset);
+
+            // String kosong atau satu titik adalah kondisi perantara yang valid
+            if (newText.isEmpty() || newText.equals(".")) {
+                return true;
+            }
+
+            try {
+                // Coba parse teks baru sebagai Double. Jika berhasil, input valid.
+                Double.parseDouble(newText);
+                return true;
+            } catch (NumberFormatException e) {
+                // Jika parsing gagal (misalnya "12..34" atau "12a34"), input tidak valid.
+                return false;
+            }
+        }
     }
 }

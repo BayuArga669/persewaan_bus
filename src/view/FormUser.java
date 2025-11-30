@@ -7,9 +7,9 @@ import model.Sopir;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.RoundRectangle2D;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,7 +33,6 @@ public class FormUser extends JFrame {
     // Warna tema
     private final Color PRIMARY = new Color(41, 128, 185);
     private final Color PRIMARY_DARK = new Color(31, 97, 141);
-    private final Color SECONDARY = new Color(52, 152, 219);
     private final Color SUCCESS = new Color(46, 204, 113);
     private final Color INFO = new Color(52, 152, 219);
     private final Color WARNING = new Color(241, 196, 15);
@@ -56,7 +55,7 @@ public class FormUser extends JFrame {
         setTitle("MANAJEMEN USER");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setLayout(new BorderLayout(0, 15)); // Add spacing between header and content
+        setLayout(new BorderLayout(0, 15));
 
         // Header Panel
         JPanel headerPanel = createHeaderPanel();
@@ -95,7 +94,7 @@ public class FormUser extends JFrame {
                 g2.fill(new Rectangle(0, 0, getWidth(), getHeight()));
             }
         };
-        headerPanel.setPreferredSize(new Dimension(0, 80)); // Reduced height
+        headerPanel.setPreferredSize(new Dimension(0, 80));
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
 
@@ -127,41 +126,33 @@ public class FormUser extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // --- SIM Panel (dibuat di awal, tapi disembunyikan) ---
-        panelSIM = new JPanel(new GridBagLayout()); // Menggunakan GridBagLayout untuk kontrol lebih baik
+        panelSIM = new JPanel(new GridBagLayout());
         panelSIM.setBorder(BorderFactory.createTitledBorder("Detail SIM"));
         panelSIM.setBackground(Color.WHITE);
         panelSIM.setVisible(false);
         
-        // GridBagConstraints khusus untuk panel SIM
         GridBagConstraints gbcSim = new GridBagConstraints();
         gbcSim.insets = new Insets(5, 5, 5, 5);
-        gbcSim.fill = GridBagConstraints.HORIZONTAL; // Buat field memanjang horizontal
+        gbcSim.fill = GridBagConstraints.HORIZONTAL;
         gbcSim.anchor = GridBagConstraints.WEST;
 
-        // Baris 1 SIM: No SIM & Jenis SIM (berdampingan)
         gbcSim.gridx = 0; gbcSim.gridy = 0; gbcSim.weightx = 0.2;
         panelSIM.add(new JLabel("No. SIM:"), gbcSim);
-        
-        gbcSim.gridx = 1; gbcSim.weightx = 0.8; // Beri lebih banyak ruang
-        panelSIM.add(txtNoSim = createTextField(), gbcSim);
+        gbcSim.gridx = 1; gbcSim.weightx = 0.8;
+        panelSIM.add(txtNoSim = createNumericField(), gbcSim);
 
         gbcSim.gridx = 2; gbcSim.weightx = 0.2;
         panelSIM.add(new JLabel("Jenis SIM:"), gbcSim);
-        
-        gbcSim.gridx = 3; gbcSim.weightx = 0.8; // Beri lebih banyak ruang
+        gbcSim.gridx = 3; gbcSim.weightx = 0.8;
         panelSIM.add(txtJenisSim = createTextField(), gbcSim);
 
-        // Baris 2 SIM: Masa Berlaku (memanjang)
         gbcSim.gridx = 0; gbcSim.gridy = 1; gbcSim.weightx = 0.2;
         panelSIM.add(new JLabel("Masa Berlaku (dd/MM/yyyy):"), gbcSim);
-        
-        gbcSim.gridx = 1; gbcSim.gridwidth = 3; gbcSim.weightx = 1.0; // Span 3 kolom
+        gbcSim.gridx = 1; gbcSim.gridwidth = 3; gbcSim.weightx = 1.0;
         panelSIM.add(txtMasaBerlakuSim = createTextField(), gbcSim);
-        // Reset gridwidth untuk komponen lain jika perlu
         gbcSim.gridwidth = 1; 
 
         // --- Form Fields Utama ---
-        // Baris 1: Username & Password
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.2;
         panel.add(new JLabel("Username:"), gbc);
         gbc.gridx = 1; gbc.weightx = 0.8;
@@ -172,7 +163,6 @@ public class FormUser extends JFrame {
         gbc.gridx = 3; gbc.weightx = 0.8;
         panel.add(txtPassword = createPasswordField(), gbc);
 
-        // Baris 2: Nama Lengkap & Email
         gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.2;
         panel.add(new JLabel("Nama Lengkap:"), gbc);
         gbc.gridx = 1; gbc.weightx = 0.8;
@@ -183,11 +173,10 @@ public class FormUser extends JFrame {
         gbc.gridx = 3; gbc.weightx = 0.8;
         panel.add(txtEmail = createTextField(), gbc);
 
-        // Baris 3: No. Telepon & Role
         gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.2;
         panel.add(new JLabel("No. Telepon:"), gbc);
         gbc.gridx = 1; gbc.weightx = 0.8;
-        panel.add(txtNoTelp = createTextField(), gbc);
+        panel.add(txtNoTelp = createNumericField(), gbc);
 
         gbc.gridx = 2; gbc.gridy = 2; gbc.weightx = 0.2;
         panel.add(new JLabel("Role:"), gbc);
@@ -196,7 +185,6 @@ public class FormUser extends JFrame {
         cmbRole.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         panel.add(cmbRole, gbc);
 
-        // Baris 4: Status
         gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0.2;
         panel.add(new JLabel("Status:"), gbc);
         gbc.gridx = 1; gbc.weightx = 0.8;
@@ -204,7 +192,6 @@ public class FormUser extends JFrame {
         cmbStatus.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         panel.add(cmbStatus, gbc);
         
-        // Baris 5: Alamat
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 4; gbc.weightx = 1.0;
         panel.add(new JLabel("Alamat:"), gbc);
         gbc.gridy = 5;
@@ -215,15 +202,13 @@ public class FormUser extends JFrame {
         txtAlamat.setBorder(BorderFactory.createLineBorder(LIGHT_GRAY));
         JScrollPane scrollAlamat = new JScrollPane(txtAlamat);
         panel.add(scrollAlamat, gbc);
-        gbc.gridwidth = 1; // Reset gridwidth
+        gbc.gridwidth = 1;
 
-        // Baris 6: Panel SIM
         gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 4; gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(panelSIM, gbc);
-        gbc.gridwidth = 1; // Reset gridwidth
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Reset fill
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Baris 7: Buttons
         gbc.gridy = 7; gbc.gridx = 0; gbc.gridwidth = 4; gbc.fill = GridBagConstraints.CENTER; gbc.anchor = GridBagConstraints.CENTER;
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         btnTambah = createModernButton("➕ Tambah", SUCCESS);
@@ -258,29 +243,70 @@ public class FormUser extends JFrame {
         return panel;
     }
 
-    // 🔹 Toggle field SIM berdasarkan role
     private void toggleSIMFields() {
-        boolean isSopir = "sopir".equals(cmbRole.getSelectedItem());
-        panelSIM.setVisible(isSopir);
-        // Sembunyikan/show password
-        txtPassword.setVisible(!isSopir);
-        // Ubah label password
-        Component parent = txtPassword.getParent();
-        if (parent instanceof JPanel) {
-            for (Component comp : ((JPanel) parent).getComponents()) {
-                if (comp instanceof JLabel && ((JLabel) comp).getText().equals("Password:")) {
-                    comp.setVisible(!isSopir);
-                }
+    boolean isSopir = "sopir".equals(cmbRole.getSelectedItem());
+    panelSIM.setVisible(isSopir);
+    txtPassword.setVisible(!isSopir);
+    
+    // Sembunyikan/tampilkan label "Password:"
+    Component parent = txtPassword.getParent();
+    if (parent instanceof JPanel) {
+        for (Component comp : ((JPanel) parent).getComponents()) {
+            if (comp instanceof JLabel && ((JLabel) comp).getText().equals("Password:")) {
+                comp.setVisible(!isSopir);
             }
         }
-        
-        // Revalidate dan repaint container utama untuk menyesuaikan layout
-        SwingUtilities.getWindowAncestor(this).revalidate();
-        SwingUtilities.getWindowAncestor(this).repaint();
     }
+    
+    // ✅ PERBAIKAN: Cek apakah window sudah ada sebelum revalidate
+    SwingUtilities.invokeLater(() -> {
+        Window window = SwingUtilities.getWindowAncestor(FormUser.this);
+        if (window != null) {
+            window.revalidate();
+            window.repaint();
+        } else {
+            // Jika window belum ada, revalidate form panel saja
+            FormUser.this.revalidate();
+            FormUser.this.repaint();
+        }
+    });
+}
 
     private JTextField createTextField() {
         JTextField field = new JTextField();
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(LIGHT_GRAY, 1),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+        addFieldFocusListener(field);
+        return field;
+    }
+    
+    private JTextField createNumericField() {
+        JTextField field = new JTextField() {
+            @Override
+            protected void processKeyEvent(KeyEvent e) {
+                if (Character.isDigit(e.getKeyChar()) || 
+                    e.getKeyCode() == KeyEvent.VK_BACK_SPACE || 
+                    e.getKeyCode() == KeyEvent.VK_DELETE ||
+                    e.getKeyCode() == KeyEvent.VK_TAB ||
+                    e.getKeyCode() == KeyEvent.VK_ENTER ||
+                    e.getKeyCode() == KeyEvent.VK_LEFT ||
+                    e.getKeyCode() == KeyEvent.VK_RIGHT ||
+                    e.getKeyCode() == KeyEvent.VK_HOME ||
+                    e.getKeyCode() == KeyEvent.VK_END ||
+                    e.isControlDown() && (e.getKeyCode() == KeyEvent.VK_C || 
+                                         e.getKeyCode() == KeyEvent.VK_V || 
+                                         e.getKeyCode() == KeyEvent.VK_X)) {
+                    super.processKeyEvent(e);
+                } else {
+                    e.consume();
+                    Toolkit.getDefaultToolkit().beep();
+                }
+            }
+        };
+        
         field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(LIGHT_GRAY, 1),
@@ -349,7 +375,6 @@ public class FormUser extends JFrame {
         tableUser.getTableHeader().setPreferredSize(new Dimension(0, 35));
         tableUser.setGridColor(new Color(230, 230, 230));
 
-        // Set column widths
         tableUser.getColumnModel().getColumn(0).setPreferredWidth(50);
         tableUser.getColumnModel().getColumn(1).setPreferredWidth(120);
         tableUser.getColumnModel().getColumn(2).setPreferredWidth(180);
@@ -367,9 +392,10 @@ public class FormUser extends JFrame {
             "Daftar User"
         ));
 
-        tableUser.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
+        // ✅ PERUBAHAN PENTING: Mengganti MouseListener dengan ListSelectionListener
+        // Ini lebih andal karena merespons perubahan pilihan dari mouse dan keyboard
+        tableUser.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) { // Mencegah event dipicu dua kali
                 selectRow();
             }
         });
@@ -538,6 +564,7 @@ public class FormUser extends JFrame {
             JOptionPane.showMessageDialog(this, "Pilih user yang akan diupdate!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
+
         String role = cmbRole.getSelectedItem().toString();
         boolean isSopir = "sopir".equals(role);
 
@@ -548,6 +575,8 @@ public class FormUser extends JFrame {
 
         User user = new User();
         user.setIdUser(selectedId);
+        user.setUsername(txtUsername.getText().trim());  // ✅ TAMBAHKAN INI
+        user.setRole(role);                               // ✅ TAMBAHKAN INI
         user.setNamaLengkap(txtNamaLengkap.getText().trim());
         user.setEmail(txtEmail.getText().trim());
         user.setNoTelp(txtNoTelp.getText().trim());
@@ -573,24 +602,27 @@ public class FormUser extends JFrame {
     }
 
     private void hapusUser() {
-        if (selectedId == -1) {
-            JOptionPane.showMessageDialog(this, "Pilih user yang akan dihapus!", "Peringatan", JOptionPane.WARNING_MESSAGE);
-            return;
+    if (selectedId == -1) {
+        JOptionPane.showMessageDialog(this, "Pilih user yang akan dihapus!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    String role = "";
+    for (int i = 0; i < tableModel.getRowCount(); i++) {
+        if (Integer.parseInt(tableModel.getValueAt(i, 0).toString()) == selectedId) {
+            role = tableModel.getValueAt(i, 5).toString();
+            break;
         }
-        String role = "";
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            if (Integer.parseInt(tableModel.getValueAt(i, 0).toString()) == selectedId) {
-                role = tableModel.getValueAt(i, 5).toString();
-                break;
-            }
-        }
-        int confirm = JOptionPane.showConfirmDialog(this, 
-            "Apakah Anda yakin ingin menghapus user ini?\nUsername: " + txtUsername.getText(),
-            "Konfirmasi Hapus", 
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE);
-        
-        if (confirm == JOptionPane.YES_OPTION) {
+    }
+    
+    int confirm = JOptionPane.showConfirmDialog(this, 
+        "Apakah Anda yakin ingin menghapus user ini?\nUsername: " + txtUsername.getText(),
+        "Konfirmasi Hapus", 
+        JOptionPane.YES_NO_OPTION,
+        JOptionPane.WARNING_MESSAGE);
+    
+    if (confirm == JOptionPane.YES_OPTION) {
+        try {
             boolean success = true;
             if ("sopir".equals(role)) {
                 Sopir sopir = sopirDAO.getSopirByUserId(selectedId);
@@ -608,45 +640,82 @@ public class FormUser extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "❌ Gagal menghapus user!", "Error", JOptionPane.ERROR_MESSAGE);
             }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "❌ Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
+}
 
-    private void selectRow() {
+    // ✅ PERUBAHAN: Metode selectRow dengan log debug dan penanganan error
+   private void selectRow() {
         int row = tableUser.getSelectedRow();
+
         if (row != -1) {
-            selectedId = Integer.parseInt(tableModel.getValueAt(row, 0).toString());
-            String role = tableModel.getValueAt(row, 5).toString();
+            try {
+                selectedId = Integer.parseInt(tableModel.getValueAt(row, 0).toString());
+                String role = tableModel.getValueAt(row, 5).toString();
 
-            txtUsername.setText(tableUser.getValueAt(row, 1).toString());
-            txtNamaLengkap.setText(tableUser.getValueAt(row, 2).toString());
-            txtEmail.setText(tableUser.getValueAt(row, 3).toString());
-            txtNoTelp.setText(tableUser.getValueAt(row, 4).toString());
-            cmbRole.setSelectedItem(role);
-            cmbStatus.setSelectedItem(tableUser.getValueAt(row, 6).toString());
+                // Set semua field dari data tabel
+                txtUsername.setText(tableModel.getValueAt(row, 1).toString());
+                txtNamaLengkap.setText(tableModel.getValueAt(row, 2).toString());
+                txtEmail.setText(tableModel.getValueAt(row, 3) != null ? tableModel.getValueAt(row, 3).toString() : "");
+                txtNoTelp.setText(tableModel.getValueAt(row, 4) != null ? tableModel.getValueAt(row, 4).toString() : "");
+                cmbRole.setSelectedItem(role);
+                cmbStatus.setSelectedItem(tableModel.getValueAt(row, 6).toString());
 
-            if ("sopir".equals(role)) {
-                Sopir sopir = sopirDAO.getSopirByUserId(selectedId);
-                if (sopir != null) {
-                    txtNoSim.setText(sopir.getNoSim());
-                    txtJenisSim.setText(sopir.getJenisSim());
-                    if (sopir.getMasaBerlakuSim() != null) {
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                        txtMasaBerlakuSim.setText(sdf.format(sopir.getMasaBerlakuSim()));
+                // Load alamat dari database (karena tidak ada di tabel)
+                // Anda perlu menambahkan method ini di UserDAO
+                txtAlamat.setText(""); // Kosongkan dulu
+
+                // Jika sopir, load data SIM
+                if ("sopir".equals(role)) {
+                    Sopir sopir = sopirDAO.getSopirByUserId(selectedId);
+                    if (sopir != null) {
+                        txtNoSim.setText(sopir.getNoSim());
+                        txtJenisSim.setText(sopir.getJenisSim());
+                        if (sopir.getMasaBerlakuSim() != null) {
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                            txtMasaBerlakuSim.setText(sdf.format(sopir.getMasaBerlakuSim()));
+                        }
                     }
+                } else {
+                    // Kosongkan field SIM jika bukan sopir
+                    txtNoSim.setText("");
+                    txtJenisSim.setText("");
+                    txtMasaBerlakuSim.setText("");
                 }
+
+                // Toggle visibility field SIM
+                toggleSIMFields();
+
+                // Disable field yang tidak boleh diubah
+                txtUsername.setEditable(false);
+                txtPassword.setEnabled(false);
+                txtPassword.setText("");
+                cmbRole.setEnabled(false);
+
+                // ✅ PENTING: Aktifkan tombol Update & Hapus
+                setButtonState(true);
+
+                System.out.println("✅ Row selected: ID=" + selectedId + ", Role=" + role); // Debug log
+
+            } catch (Exception ex) {
+                System.err.println("❌ Error selecting row: " + ex.getMessage());
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, 
+                    "Error saat memilih data: " + ex.getMessage(), 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
             }
-            
-            toggleSIMFields(); // Show/hide SIM fields based on role
-            txtUsername.setEditable(false);
-            txtPassword.setEnabled(false);
-            txtPassword.setText("");
-            cmbRole.setEnabled(false);
-            
-            setButtonState(true);
+        } else {
+            // Jika tidak ada yang dipilih, clear form
+            clearForm();
         }
     }
 
     private void clearForm() {
+        // Clear semua field
         txtUsername.setText("");
         txtPassword.setText("");
         txtNamaLengkap.setText("");
@@ -656,24 +725,36 @@ public class FormUser extends JFrame {
         txtNoSim.setText("");
         txtJenisSim.setText("");
         txtMasaBerlakuSim.setText("");
-        
+
+        // Reset combo box
         cmbRole.setSelectedIndex(0);
         cmbStatus.setSelectedIndex(0);
-        
+
+        // Reset selected ID
         selectedId = -1;
+
+        // Clear table selection
         tableUser.clearSelection();
-        
+
+        // Enable field yang tadi di-disable
         txtUsername.setEditable(true);
         txtPassword.setEnabled(true);
         cmbRole.setEnabled(true);
-        
+
+        // ✅ Nonaktifkan tombol Update & Hapus, aktifkan Tambah
         setButtonState(false);
-        toggleSIMFields(); // Reset tampilan
+
+        // Toggle SIM fields
+        toggleSIMFields();
+
+        System.out.println("🧹 Form cleared"); // Debug log
     }
 
     private void setButtonState(boolean isUpdate) {
-        btnTambah.setEnabled(!isUpdate);
-        btnUpdate.setEnabled(isUpdate);
-        btnHapus.setEnabled(isUpdate);
+        btnTambah.setEnabled(!isUpdate);  // Tambah aktif saat mode insert
+        btnUpdate.setEnabled(isUpdate);    // Update aktif saat mode edit
+        btnHapus.setEnabled(isUpdate);     // Hapus aktif saat mode edit
+
+        System.out.println("🔘 Button state changed: isUpdate=" + isUpdate); // Debug log
     }
 }

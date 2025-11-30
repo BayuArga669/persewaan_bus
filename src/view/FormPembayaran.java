@@ -4,6 +4,7 @@ import dao.*;
 import model.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.NumberFormat;
@@ -100,9 +101,9 @@ public class FormPembayaran extends JFrame {
         
         cmbBooking.addActionListener(e -> loadBookingInfo());
         
-        tablePembayaran.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
+        // ✅ PERUBAHAN: Menggunakan ListSelectionListener untuk pemilihan baris
+        tablePembayaran.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
                 selectRow();
             }
         });
@@ -176,7 +177,8 @@ public class FormPembayaran extends JFrame {
         gbc.gridx = 0; gbc.gridy = 5;
         panel.add(new JLabel("Jumlah Bayar:"), gbc);
         gbc.gridx = 1;
-        txtJumlahBayar = new JTextField(20);
+        // ✅ PERUBAHAN: Menggunakan createNumericField() agar hanya menerima angka
+        txtJumlahBayar = createNumericField();
         panel.add(txtJumlahBayar, gbc);
         
         gbc.gridx = 2;
@@ -195,7 +197,7 @@ public class FormPembayaran extends JFrame {
         gbc.gridx = 1; gbc.gridwidth = 3;
         gbc.gridwidth = 1;
         
-        // Row 7 - Keterangan
+        // Row7 - Keterangan
         gbc.gridx = 0; gbc.gridy = 7;
         panel.add(new JLabel("Keterangan:"), gbc);
         gbc.gridx = 1; gbc.gridwidth = 3;
@@ -252,6 +254,35 @@ public class FormPembayaran extends JFrame {
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return button;
+    }
+    
+    // ✅ METODE BARU: Membuat field yang hanya menerima input numerik
+    private JTextField createNumericField() {
+        JTextField field = new JTextField() {
+            @Override
+            protected void processKeyEvent(KeyEvent e) {
+                // Mengizinkan angka, backspace, delete, tab, enter, arrow keys
+                if (Character.isDigit(e.getKeyChar()) || 
+                    e.getKeyCode() == KeyEvent.VK_BACK_SPACE || 
+                    e.getKeyCode() == KeyEvent.VK_DELETE ||
+                    e.getKeyCode() == KeyEvent.VK_TAB ||
+                    e.getKeyCode() == KeyEvent.VK_ENTER ||
+                    e.getKeyCode() == KeyEvent.VK_LEFT ||
+                    e.getKeyCode() == KeyEvent.VK_RIGHT ||
+                    e.getKeyCode() == KeyEvent.VK_HOME ||
+                    e.getKeyCode() == KeyEvent.VK_END ||
+                    e.isControlDown() && (e.getKeyCode() == KeyEvent.VK_C || 
+                                         e.getKeyCode() == KeyEvent.VK_V || 
+                                         e.getKeyCode() == KeyEvent.VK_X)) {
+                    super.processKeyEvent(e);
+                } else {
+                    // Mencegah input karakter non-angka
+                    e.consume();
+                    Toolkit.getDefaultToolkit().beep(); // Opsional: Bunyi peringatan
+                }
+            }
+        };
+        return field;
     }
     
     // ✅ FULL FIX: Hanya tampilkan booking yang belum lunas

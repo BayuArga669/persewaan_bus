@@ -83,9 +83,9 @@ public class FormBooking extends JFrame {
         contentPanel.add(tablePanel, BorderLayout.CENTER);
         add(contentPanel, BorderLayout.CENTER);
 
-        tableBooking.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
+        // ✅ PERUBAHAN: Menggunakan ListSelectionListener untuk pemilihan baris
+        tableBooking.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
                 selectRow();
             }
         });
@@ -168,7 +168,7 @@ public class FormBooking extends JFrame {
             BorderFactory.createLineBorder(MEDIUM_GRAY, 1),
             BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
-        addFieldFocusListener(txtKodeBooking, true);
+        addFieldFocusListener(txtKodeBooking, true); // khusus kode booking
         panel.add(createInputField("📋 Kode Booking", txtKodeBooking), gbc);
 
         gbc.gridx = 1;
@@ -246,15 +246,18 @@ public class FormBooking extends JFrame {
         panel.add(createInputField("📍 Tujuan", txtTujuan = createTextField(true)), gbc);
 
         gbc.gridx = 1;
-        panel.add(createInputField("👥 Jml Penumpang", txtJumlahPenumpang = createTextField(true)), gbc);
+        // ✅ PERUBAHAN: Menggunakan createNumericField untuk Jumlah Penumpang
+        panel.add(createInputField("👥 Jml Penumpang", txtJumlahPenumpang = createNumericField()), gbc);
 
         // Row 5 - Lama Sewa & Total Harga
         gbc.gridx = 0; gbc.gridy = 5;
-        panel.add(createInputField("⏱️ Lama Sewa (hari)", txtLamaSewa = createTextField(false)), gbc);
+        // ✅ PERUBAHAN: Menggunakan createNumericField untuk Lama Sewa
+        panel.add(createInputField("⏱️ Lama Sewa (hari)", txtLamaSewa = createNumericField()), gbc);
 
         gbc.gridx = 1;
-        panel.add(createInputField("💰 Total Harga", txtTotalHarga = createTextField(false)), gbc);
-
+        // ✅ PERUBAHAN: Menggunakan createNumericField untuk Total Harga
+        panel.add(createInputField("💰 Total Harga", txtTotalHarga = createNumericField()), gbc);
+        
         // Row 6 - Catatan
         gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
         panel.add(createInputField("📝 Catatan", txtCatatan = createTextArea()), gbc);
@@ -287,12 +290,15 @@ public class FormBooking extends JFrame {
         btnRefresh.addActionListener(e -> loadData());
         btnHitung.addActionListener(e -> hitungTotal());
 
+        // Hover effect
         addHoverEffect(btnTambah, SUCCESS);
         addHoverEffect(btnUpdate, INFO);
         addHoverEffect(btnHapus, DANGER);
         addHoverEffect(btnBatal, new Color(149, 165, 166));
         addHoverEffect(btnRefresh, WARNING);
         addHoverEffect(btnHitung, new Color(230, 126, 34));
+
+        setButtonState(false);
 
         return panel;
     }
@@ -339,8 +345,45 @@ public class FormBooking extends JFrame {
             BorderFactory.createLineBorder(new Color(220, 220, 220)), 
             "📊 Daftar Booking"
         ));
+
         panel.add(scrollTable, BorderLayout.CENTER);
         return panel;
+    }
+    
+    // ✅ METODE BARU: Membuat field yang hanya menerima input numerik
+    private JTextField createNumericField() {
+        JTextField field = new JTextField() {
+            @Override
+            protected void processKeyEvent(KeyEvent e) {
+                // Mengizinkan angka, backspace, delete, tab, enter, arrow keys
+                if (Character.isDigit(e.getKeyChar()) || 
+                    e.getKeyCode() == KeyEvent.VK_BACK_SPACE || 
+                    e.getKeyCode() == KeyEvent.VK_DELETE ||
+                    e.getKeyCode() == KeyEvent.VK_TAB ||
+                    e.getKeyCode() == KeyEvent.VK_ENTER ||
+                    e.getKeyCode() == KeyEvent.VK_LEFT ||
+                    e.getKeyCode() == KeyEvent.VK_RIGHT ||
+                    e.getKeyCode() == KeyEvent.VK_HOME ||
+                    e.getKeyCode() == KeyEvent.VK_END ||
+                    e.isControlDown() && (e.getKeyCode() == KeyEvent.VK_C || 
+                                         e.getKeyCode() == KeyEvent.VK_V || 
+                                         e.getKeyCode() == KeyEvent.VK_X)) {
+                    super.processKeyEvent(e);
+                } else {
+                    // Mencegah input karakter non-angka
+                    e.consume();
+                    Toolkit.getDefaultToolkit().beep(); // Opsional: Bunyi peringatan
+                }
+            }
+        };
+        
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(LIGHT_GRAY, 1),
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
+        ));
+        addFieldFocusListener(field);
+        return field;
     }
     
     private JPanel createInputField(String label, JComponent field) {
@@ -352,6 +395,7 @@ public class FormBooking extends JFrame {
             lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         }
         panel.add(lbl, BorderLayout.WEST);
+        
         if (field instanceof JTextArea) {
             JTextArea textArea = (JTextArea) field;
             JScrollPane scrollPane = new JScrollPane(textArea);
@@ -359,6 +403,7 @@ public class FormBooking extends JFrame {
             panel.add(scrollPane, BorderLayout.CENTER);
             return panel;
         }
+        
         panel.add(field, BorderLayout.CENTER);
         return panel;
     }
@@ -372,8 +417,8 @@ public class FormBooking extends JFrame {
                     Graphics2D g2 = (Graphics2D) g;
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     g2.setColor(new Color(180, 180, 180));
-                    g2.setFont(getFont().deriveFont(Font.ITALIC, 11));
-                    g2.drawString("Ketik di sini...", getInsets().left + 4, getHeight()/2 + 2);
+                    g2.setFont(getFont().deriveFont(Font.ITALIC));
+                    g2.drawString("Ketik di sini...", getInsets().left + 5, getHeight()/2 + 2);
                 }
             }
         };
@@ -381,7 +426,7 @@ public class FormBooking extends JFrame {
         field.setEditable(editable);
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(LIGHT_GRAY, 1),
-            BorderFactory.createEmptyBorder(6, 10, 6, 10)
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
         ));
         addFieldFocusListener(field);
         return field;
@@ -394,7 +439,7 @@ public class FormBooking extends JFrame {
         area.setWrapStyleWord(true);
         area.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(LIGHT_GRAY, 1),
-            BorderFactory.createEmptyBorder(6, 10, 6, 10)
+            BorderFactory.createEmptyBorder(5, 8, 5, 8)
         ));
         addFieldFocusListener(area);
         return area;
@@ -487,20 +532,21 @@ public class FormBooking extends JFrame {
             @Override
             public void focusGained(FocusEvent e) {
                 field.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(PRIMARY, 2),
-                    BorderFactory.createEmptyBorder(5, 9, 5, 9)
+                    BorderFactory.createLineBorder(FOCUS_BLUE, 2),
+                    BorderFactory.createEmptyBorder(4, 7, 4, 7)
                 ));
             }
             @Override
             public void focusLost(FocusEvent e) {
                 field.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(LIGHT_GRAY, 1),
-                    BorderFactory.createEmptyBorder(6, 10, 6, 10)
+                    BorderFactory.createEmptyBorder(5, 8, 5, 8)
                 ));
             }
         });
     }
     
+    // ⭐ Versi khusus (untuk field biasa)
     private void addFieldFocusListener(JComponent field, boolean isKodeBooking) {
         if (isKodeBooking) {
             field.addFocusListener(new FocusAdapter() {
@@ -563,7 +609,11 @@ public class FormBooking extends JFrame {
             }
             @Override
             public void mouseReleased(MouseEvent e) {
-                button.setBackground(button.getModel().isRollover() ? baseColor.darker() : baseColor);
+                if (button.getModel().isRollover()) {
+                    button.setBackground(baseColor.darker());
+                } else {
+                    button.setBackground(baseColor);
+                }
             }
         });
     }
@@ -587,7 +637,7 @@ public class FormBooking extends JFrame {
                 setBackground(new Color(248, 215, 218));
                 setForeground(new Color(169, 68, 66));
             }
-            setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
+            setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
             setFont(new Font("Segoe UI", Font.BOLD, 11));
             return this;
         }
@@ -601,7 +651,7 @@ public class FormBooking extends JFrame {
         }
         
         cmbBus.removeAllItems();
-        List<Bus> busList = busDAO.getBusTersedia();
+        List<Bus> busList = busDAO.getAllBus();
         for (Bus b : busList) {
             cmbBus.addItem(b.getIdBus() + " - " + b.getNoPolisi() + " (" + b.getTipeBus() + ")");
         }
@@ -679,7 +729,6 @@ public class FormBooking extends JFrame {
         
         Booking booking = new Booking();
         booking.setIdBooking(selectedId);
-        booking.setIdBus(oldBooking.getIdBus());
         booking.setTanggalMulai(dateStart.getDate());
         booking.setTanggalSelesai(dateEnd.getDate());
         booking.setTujuan(txtTujuan.getText().trim());
@@ -690,7 +739,7 @@ public class FormBooking extends JFrame {
         booking.setStatusBooking(cmbStatus.getSelectedItem().toString());
         booking.setCatatan(txtCatatan.getText().trim());
         
-        if (!busDAO.isBusAvailable(booking.getIdBus(), booking.getTanggalMulai(), booking.getTanggalSelesai(), selectedId)) {
+        if (!busDAO.isBusAvailable(oldBooking.getIdBus(), booking.getTanggalMulai(), booking.getTanggalSelesai(), selectedId)) {
             JOptionPane.showMessageDialog(this,
                 "❌ Bus ini tidak tersedia pada rentang tanggal yang dipilih!",
                 "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
@@ -701,10 +750,10 @@ public class FormBooking extends JFrame {
             String msg = "✅ Update berhasil!";
             String status = booking.getStatusBooking();
             if ("selesai".equals(status) || "dibatalkan".equals(status)) {
-                busDAO.updateStatusBus(booking.getIdBus(), "tersedia");
+                busDAO.updateStatusBus(oldBooking.getIdBus(), "tersedia");
                 msg += "\nBus dikembalikan ke status 'tersedia'.";
             } else if ("dikonfirmasi".equals(status)) {
-                busDAO.updateStatusBus(booking.getIdBus(), "disewa");
+                busDAO.updateStatusBus(oldBooking.getIdBus(), "disewa");
             }
             JOptionPane.showMessageDialog(this, msg, "Sukses", JOptionPane.INFORMATION_MESSAGE);
             loadData();
@@ -720,7 +769,13 @@ public class FormBooking extends JFrame {
             JOptionPane.showMessageDialog(this, "Pilih booking yang akan dihapus!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int confirm = JOptionPane.showConfirmDialog(this, "Ingin menghapus booking ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+        
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Apakah Anda yakin ingin menghapus booking ini?\nUsername: " + txtKodeBooking.getText(),
+            "Konfirmasi Hapus", 
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+        
         if (confirm == JOptionPane.YES_OPTION) {
             JOptionPane.showMessageDialog(this, 
                 "ℹ️ Hapus booking dinonaktifkan.\nUbah status ke 'dibatalkan' saja.", 
@@ -756,6 +811,7 @@ public class FormBooking extends JFrame {
         if (row != -1) {
             selectedId = Integer.parseInt(tableModel.getValueAt(row, 0).toString());
             Booking booking = bookingDAO.getBookingById(selectedId);
+            
             if (booking != null) {
                 txtKodeBooking.setText(booking.getKodeBooking());
                 dateStart.setDate(booking.getTanggalMulai());
@@ -767,25 +823,6 @@ public class FormBooking extends JFrame {
                 cmbStatus.setSelectedItem(booking.getStatusBooking());
                 txtCatatan.setText(booking.getCatatan());
                 setButtonState(true);
-                
-                // Load preview bus
-                Bus bus = busDAO.getBusById(booking.getIdBus());
-                if (bus != null && !bus.getFoto().isEmpty()) {
-                    String path = "assets/bus/" + bus.getFoto();
-                    File imgFile = new File(path);
-                    if (imgFile.exists()) {
-                        ImageIcon icon = new ImageIcon(path);
-                        Image img = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-                        lblPreviewBus.setIcon(new ImageIcon(img));
-                        lblPreviewBus.setText("");
-                    } else {
-                        lblPreviewBus.setIcon(null);
-                        lblPreviewBus.setText("File\nTidak Ada");
-                    }
-                } else {
-                    lblPreviewBus.setIcon(null);
-                    lblPreviewBus.setText("Belum Ada\nFoto");
-                }
             }
         }
     }
@@ -801,7 +838,7 @@ public class FormBooking extends JFrame {
         dateEnd.setDate(null);
         cmbPelanggan.setSelectedIndex(-1);
         cmbBus.setSelectedIndex(-1);
-        cmbStatus.setSelectedIndex(-1);
+        cmbStatus.setSelectedIndex(0);
         lblPreviewBus.setIcon(null);
         lblPreviewBus.setText("Pilih Bus\nDulu");
         selectedId = -1;
@@ -812,6 +849,7 @@ public class FormBooking extends JFrame {
     private void setButtonState(boolean isUpdate) {
         btnTambah.setEnabled(!isUpdate);
         btnUpdate.setEnabled(isUpdate);
+        btnHapus.setEnabled(isUpdate);
         cmbPelanggan.setEnabled(!isUpdate);
         cmbBus.setEnabled(!isUpdate);
     }
@@ -835,12 +873,20 @@ public class FormBooking extends JFrame {
             JOptionPane.showMessageDialog(this, "⚠️ Semua field wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
+        
+        // ✅ Validasi tanggal mulai tidak setelah tanggal selesai
+        if (dateStart.getDate().after(dateEnd.getDate())) {
+            JOptionPane.showMessageDialog(this, "⚠️ Tanggal mulai tidak boleh setelah tanggal selesai!", "Validasi", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        
         try {
             Integer.parseInt(txtJumlahPenumpang.getText().trim());
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "⚠️ Jumlah penumpang harus angka!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
+        
         return true;
     }
     
@@ -850,18 +896,13 @@ public class FormBooking extends JFrame {
             JOptionPane.showMessageDialog(this, "⚠️ Semua field wajib diisi!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
-
-        int busId = getSelectedIdFromCombo(cmbBus);
-        Date mulai = dateStart.getDate();
-        Date selesai = dateEnd.getDate();
-
-        if (!busDAO.isBusAvailable(busId, mulai, selesai, selectedId)) {
-            JOptionPane.showMessageDialog(this,
-                "❌ Bus ini tidak tersedia pada rentang tanggal yang dipilih!",
-                "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+        
+        // ✅ Validasi tanggal mulai tidak setelah tanggal selesai
+        if (dateStart.getDate().after(dateEnd.getDate())) {
+            JOptionPane.showMessageDialog(this, "⚠️ Tanggal mulai tidak boleh setelah tanggal selesai!", "Validasi", JOptionPane.WARNING_MESSAGE);
             return false;
         }
-
+        
         return true;
     }
     

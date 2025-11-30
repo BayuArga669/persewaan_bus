@@ -71,7 +71,7 @@ public class FormPelanggan extends JFrame {
         btnUpdate.addActionListener(e -> updatePelanggan());
         btnHapus.addActionListener(e -> hapusPelanggan());
         btnBatal.addActionListener(e -> clearForm());
-        //btnCari.addActionListener(e -> cariPelanggan());
+        //btnCari.addActionListener(e -> cariPelanggan()); // Tidak perlu karena sudah ada live search
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
             loadData();
@@ -84,9 +84,9 @@ public class FormPelanggan extends JFrame {
             @Override public void changedUpdate(DocumentEvent e) { filterData(); }
         });
 
-        tablePelanggan.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
+        // ✅ PERUBAHAN: Menggunakan ListSelectionListener untuk pemilihan baris
+        tablePelanggan.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
                 selectRow();
             }
         });
@@ -152,11 +152,13 @@ public class FormPelanggan extends JFrame {
         gbc.gridx = 0; gbc.gridy = 0;
         panel.add(createLabeledField("👤 Nama Lengkap", txtNama = createTextField("Nama pelanggan", true)), gbc);
         gbc.gridx = 1;
-        panel.add(createLabeledField("🆔 No. KTP", txtNoKtp = createTextField("1234567890123456", false)), gbc);
+        // ✅ PERUBAHAN: Menggunakan createNumericField untuk No. KTP
+        panel.add(createLabeledField("🆔 No. KTP", txtNoKtp = createNumericField()), gbc);
 
         // No Telp & Email
         gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(createLabeledField("📱 No. Telepon", txtNoTelp = createTextField("0812-3456-7890", true)), gbc);
+        // ✅ PERUBAHAN: Menggunakan createNumericField untuk No. Telepon
+        panel.add(createLabeledField("📱 No. Telepon", txtNoTelp = createNumericField()), gbc);
         gbc.gridx = 1;
         panel.add(createLabeledField("✉️ Email", txtEmail = createTextField("contoh@email.com", false)), gbc);
 
@@ -219,7 +221,7 @@ public class FormPelanggan extends JFrame {
         btnCari = createModernButton("🔎 Cari", WARNING);
         btnRefresh = createModernButton("🔄 Segarkan", new Color(149, 165, 166));
 
-        //panel.add(btnCari);
+        //panel.add(btnCari); // Tidak perlu karena sudah ada live search
         panel.add(btnRefresh);
 
         addHoverEffect(btnCari, WARNING);
@@ -244,7 +246,7 @@ public class FormPelanggan extends JFrame {
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
                 Component c = super.prepareRenderer(renderer, row, column);
                 if (!isRowSelected(row)) {
-                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(248, 249, 250));
+                    c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(248,249, 250));
                 }
                 return c;
             }
@@ -320,6 +322,60 @@ public class FormPelanggan extends JFrame {
             field.setPreferredSize(new Dimension(0, 28));
         }
         
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(LIGHT_GRAY, 1),
+            BorderFactory.createEmptyBorder(6, 10, 6, 10)
+        ));
+        
+        field.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(FOCUS_BLUE, 2),
+                    BorderFactory.createEmptyBorder(5, 9, 5, 9)
+                ));
+            }
+            @Override
+            public void focusLost(FocusEvent e) {
+                field.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(LIGHT_GRAY, 1),
+                    BorderFactory.createEmptyBorder(6, 10, 6, 10)
+                ));
+            }
+        });
+        return field;
+    }
+
+    // ✅ METODE BARU: Membuat field yang hanya menerima input numerik
+    private JTextField createNumericField() {
+        JTextField field = new JTextField() {
+            @Override
+            protected void processKeyEvent(KeyEvent e) {
+                // Mengizinkan angka, backspace, delete, tab, enter, arrow keys
+                if (Character.isDigit(e.getKeyChar()) || 
+                    e.getKeyCode() == KeyEvent.VK_BACK_SPACE || 
+                    e.getKeyCode() == KeyEvent.VK_DELETE ||
+                    e.getKeyCode() == KeyEvent.VK_TAB ||
+                    e.getKeyCode() == KeyEvent.VK_ENTER ||
+                    e.getKeyCode() == KeyEvent.VK_LEFT ||
+                    e.getKeyCode() == KeyEvent.VK_RIGHT ||
+                    e.getKeyCode() == KeyEvent.VK_HOME ||
+                    e.getKeyCode() == KeyEvent.VK_END ||
+                    e.isControlDown() && (e.getKeyCode() == KeyEvent.VK_C || 
+                                         e.getKeyCode() == KeyEvent.VK_V || 
+                                         e.getKeyCode() == KeyEvent.VK_X)) {
+                    super.processKeyEvent(e);
+                } else {
+                    // Mencegah input karakter non-angka
+                    e.consume();
+                    Toolkit.getDefaultToolkit().beep(); // Opsional: Bunyi peringatan
+                }
+            }
+        };
+        
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        field.setColumns(20);
+        field.setPreferredSize(new Dimension(0, 28));
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(LIGHT_GRAY, 1),
             BorderFactory.createEmptyBorder(6, 10, 6, 10)
