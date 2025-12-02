@@ -146,11 +146,11 @@ public class DashboardAdmin extends JFrame {
         panel.setOpaque(false);
         
         Object[][] stats = {
-            {"👥", "User", String.valueOf(totalUser), PRIMARY},
-            {"📅", "Booking", String.valueOf(totalBooking), SUCCESS},
-            {"👨", "Pelanggan", String.valueOf(totalPelanggan), WARNING},
-            {"🚕", "Sopir Aktif", String.valueOf(totalSopir), SECONDARY},
-            {"🚌", "Bus", String.valueOf(totalBus), INFO}
+            {"U", "User", String.valueOf(totalUser), PRIMARY},
+            {"B", "Booking", String.valueOf(totalBooking), SUCCESS},
+            {"P", "Pelanggan", String.valueOf(totalPelanggan), WARNING},
+            {"S", "Sopir Aktif", String.valueOf(totalSopir), SECONDARY},
+            {"Bus", "Bus", String.valueOf(totalBus), INFO}
         };
         
         for (Object[] stat : stats) {
@@ -254,7 +254,7 @@ public class DashboardAdmin extends JFrame {
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         titlePanel.setOpaque(false);
         
-        JLabel logoLabel = new JLabel("🚌");
+        JLabel logoLabel = new JLabel("B");
         logoLabel.setFont(new Font("Segoe UI", Font.BOLD, 40));
         
         JPanel textPanel = new JPanel(new GridLayout(2, 1, 0, 5));
@@ -289,16 +289,13 @@ public class DashboardAdmin extends JFrame {
         panel.setLayout(new WrapLayout(WrapLayout.CENTER, 25, 25));
         panel.setOpaque(false);
 
-        // ✅ HANYA 7 MENU (tanpa "Kelola Pembayaran")
+        // ✅ HANYA 4 MENU (tanpa "Kelola Booking", "Kelola Pelanggan", dan "Assignment Sopir")
         Object[][] menuItems = {
-            {"Kelola Bus", "🚌", INFO, (ActionListener) e -> openManageBus()},
-            {"Kelola User", "👥", new Color(155, 89, 182), (ActionListener) e -> openManageUser()},
-            {"Kelola Booking", "📅", SUCCESS, (ActionListener) e -> openManageBooking()},
-            {"Kelola Pelanggan", "👨", WARNING, (ActionListener) e -> openManagePelanggan()},
-            {"Assignment Sopir", "🚕", SECONDARY, (ActionListener) e -> openManageSopir()},
-            {"Biaya Operasional", "💰", new Color(230, 126, 34), (ActionListener) e -> openBiayaOperasional()},
-            {"Laporan Keuangan", "📊", new Color(26, 188, 156), (ActionListener) e -> openLaporan()},
-            {"Logout", "🚪", DANGER, (ActionListener) e -> logout()}
+            {"Kelola Bus", "Bus", INFO, (ActionListener) e -> openManageBus()},
+            {"Kelola User", "User", new Color(155, 89, 182), (ActionListener) e -> openManageUser()},
+            {"Biaya Operasional", "Rp", new Color(230, 126, 34), (ActionListener) e -> openBiayaOperasional()},
+            {"Laporan Keuangan", "Rp", new Color(26, 188, 156), (ActionListener) e -> openLaporan()},
+            {"Logout", "X", DANGER, (ActionListener) e -> logout()}
         };
 
         for (Object[] item : menuItems) {
@@ -407,9 +404,6 @@ public class DashboardAdmin extends JFrame {
         switch (title) {
             case "Kelola Bus": return "Tambah, edit, dan hapus data bus";
             case "Kelola User": return "Kelola admin, kasir, dan sopir";
-            case "Kelola Booking": return "Kelola pemesanan bus pelanggan";
-            case "Kelola Pelanggan": return "Kelola data pelanggan";
-            case "Assignment Sopir": return "Assign sopir ke booking";
             case "Laporan Keuangan": return "Lihat laporan pendapatan";
             case "Logout": return "Keluar dari sistem";
             default: return "";
@@ -457,21 +451,9 @@ public class DashboardAdmin extends JFrame {
     private void openManageBus() {
         SwingUtilities.invokeLater(() -> new FormBus().setVisible(true));
     }
-    
+
     private void openManageUser() {
         SwingUtilities.invokeLater(() -> new FormUser().setVisible(true));
-    }
-    
-    private void openManageBooking() {
-        SwingUtilities.invokeLater(() -> new FormBooking().setVisible(true));
-    }
-    
-    private void openManagePelanggan() {
-        SwingUtilities.invokeLater(() -> new FormPelanggan().setVisible(true));
-    }
-    
-    private void openManageSopir() {
-        SwingUtilities.invokeLater(() -> new FormAssignmentSopir().setVisible(true));
     }
     
     private void openLaporan() {

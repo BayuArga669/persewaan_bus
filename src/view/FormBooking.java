@@ -305,7 +305,7 @@ public class FormBooking extends JFrame {
     
     private JPanel createTablePanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        String[] columns = {"ID", "Kode", "Pelanggan", "Bus", "Tgl Mulai", "Tgl Selesai", "Tujuan", "Lama", "Total", "Status"};
+        String[] columns = {"ID", "Kode", "Pelanggan", "Bus", "Tgl Booking", "Tgl Mulai", "Tgl Selesai", "Tujuan", "Lama", "Total", "Status"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -333,7 +333,7 @@ public class FormBooking extends JFrame {
         tableBooking.getTableHeader().setPreferredSize(new Dimension(0, 36));
         tableBooking.setGridColor(new Color(235, 235, 235));
 
-        int[] widths = {40, 90, 150, 150, 80, 80, 120, 60, 100, 90};
+        int[] widths = {40, 90, 150, 150, 80, 80, 80, 120, 60, 100, 90};
         for (int i = 0; i < widths.length; i++) {
             tableBooking.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
@@ -666,6 +666,7 @@ public class FormBooking extends JFrame {
                 booking.getKodeBooking(),
                 booking.getNamaPelanggan(),
                 booking.getNoPolisi(),
+                booking.getTanggalBooking() != null ? new SimpleDateFormat("dd/MM/yy").format(booking.getTanggalBooking()) : "-",
                 new SimpleDateFormat("dd/MM/yy").format(booking.getTanggalMulai()),
                 new SimpleDateFormat("dd/MM/yy").format(booking.getTanggalSelesai()),
                 booking.getTujuan(),
